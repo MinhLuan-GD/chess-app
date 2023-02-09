@@ -1,16 +1,10 @@
 <template>
-  <div
-    :class="
-      black
-        ? `${$style.tile} ${$style['black-tile']}`
-        : `${$style.tile} ${$style['while-tile']}`
-    "
-  >
-    <img
+  <div :class="black ? 'tile black-tile' : 'tile while-tile'">
+    <div
       v-if="pieceImage"
-      :src="require(`@/assets/pieces/${pieceImage}`)"
-      alt="Chess Piece"
-    />
+      class="chess-piece"
+      :style="`background-image: url(${url(pieceImage)});`"
+    ></div>
   </div>
 </template>
 
@@ -26,22 +20,35 @@ import { Options, Vue } from "vue-class-component";
 export default class Tile extends Vue {
   black!: boolean;
   pieceImage?: string;
+
+  url(name: string) {
+    return `/img/pieces/${name}`;
+  }
 }
 </script>
 
-<style lang="scss" module>
+<style lang="scss">
 .tile {
   height: 70px;
   width: 70px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  place-content: center;
+  & .chess-piece {
+    background-position: center;
+    background-size: 60px;
+    background-repeat: no-repeat;
+    width: 70px;
+    height: 70px;
+    cursor: grab;
+    &:active {
+      cursor: grabbing;
+    }
+  }
 }
 
 .black-tile {
-  background-color: rgb(207, 95, 60);
+  background-color: #aa5656;
 }
 .while-tile {
-  background-color: #fff;
+  background-color: #f1dbbf;
 }
 </style>
