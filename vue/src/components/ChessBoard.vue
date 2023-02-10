@@ -16,10 +16,12 @@
 </template>
 
 <script lang="ts">
-import { Piece } from "@/utils/types";
+import { Piece, PieceType, TeamType } from "@/utils/types";
 import { ref, watch } from "vue";
 import { Options, Vue } from "vue-class-component";
+import Referee from "@/referee/Referee";
 import Tile from "./Tile.vue";
+import { initChess } from "@/utils/init-chess";
 
 @Options({ components: { Tile } })
 export default class ChessBoard extends Vue {
@@ -30,40 +32,24 @@ export default class ChessBoard extends Vue {
   chessBoardRef = ref() as unknown as HTMLDivElement;
 
   board: any[] = [];
+  referee!: Referee;
   gridX!: number;
   gridY!: number;
+
+  teamPlay!: string;
 
   minX!: number;
   minY!: number;
   maxX!: number;
   maxY!: number;
 
-  pieces: Piece[] = [
-    { image: "rdt.png", x: 0, y: 7 },
-    { image: "rdt.png", x: 7, y: 7 },
-    { image: "rlt.png", x: 0, y: 0 },
-    { image: "rlt.png", x: 7, y: 0 },
-    { image: "ndt.png", x: 1, y: 7 },
-    { image: "ndt.png", x: 6, y: 7 },
-    { image: "nlt.png", x: 1, y: 0 },
-    { image: "nlt.png", x: 6, y: 0 },
-    { image: "bdt.png", x: 2, y: 7 },
-    { image: "bdt.png", x: 5, y: 7 },
-    { image: "blt.png", x: 2, y: 0 },
-    { image: "blt.png", x: 5, y: 0 },
-    { image: "qdt.png", x: 3, y: 7 },
-    { image: "kdt.png", x: 4, y: 7 },
-    { image: "qlt.png", x: 3, y: 0 },
-    { image: "klt.png", x: 4, y: 0 },
-  ];
+  pieces: Piece[] = [];
 
   created(): void {
-    for (let i = 0; i < 8; i++) {
-      this.pieces.push({ image: "pdt.png", x: i, y: 6 });
-      this.pieces.push({ image: "plt.png", x: i, y: 1 });
-    }
+    this.teamPlay = "w";
+    this.pieces = initChess(this.teamPlay);
+    this.referee = new Referee();
     this.changeBoard();
-    watch([this.pieces], () => this.changeBoard());
   }
 
   changeBoard() {
@@ -75,12 +61,14 @@ export default class ChessBoard extends Vue {
           // y: this.verticalAxis[j],
           key: `${i}${j}`,
           black: (i + j) % 2 == 0,
-          image: this.pieces.filter((p) => p.x == i && p.y == j)[0]?.image,
+          image: this.pieces.filter((p) => p.pieceX == i && p.pieceY == j)[0]
+            ?.img,
         });
       }
   }
 
   mounted(): void {
+    watch([this.pieces], () => this.changeBoard());
     this.minX = this.chessBoardRef.offsetLeft - 10;
     this.minY = this.chessBoardRef.offsetTop - 10;
     this.maxX =
@@ -128,13 +116,26 @@ export default class ChessBoard extends Vue {
         Math.floor((e.clientY - this.chessBoardRef.offsetTop - 490) / 70)
       );
       this.activatePiece.style.position = "unset";
-      this.pieces.map((p) => {
-        if (p.x == this.gridX && p.y == this.gridY) {
-          p.x = x;
-          p.y = y;
-        }
-      });
-      // this.pieces[0].y = 5;
+      if (x !== this.gridX || y !== this.gridY) {
+        this.pieces.map((p) => {
+          if (
+            p.pieceX === this.gridX &&
+            p.pieceY === this.gridY &&
+            this.referee.isValidMove(
+              this.gridX,
+              this.gridY,
+              x,
+              y,
+              p.piece,
+              p.team,
+              this.pieces
+            )
+          ) {
+            p.pieceX = x;
+            p.pieceY = y;
+          }
+        });
+      }
       this.activatePiece = null;
     }
   }

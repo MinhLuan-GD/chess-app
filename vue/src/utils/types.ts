@@ -1,7 +1,23 @@
 interface Piece {
-  image: string;
-  x: number;
-  y: number;
+  img: string;
+  pieceX: number;
+  pieceY: number;
+  piece: PieceType;
+  team: TeamType;
 }
 
-export { Piece };
+enum TeamType {
+  OPPONENT,
+  OUR,
+}
+
+enum PieceType {
+  PAWN,
+  BISHOP,
+  KNIGHT,
+  ROOK,
+  QUEEN,
+  KING,
+}
+
+export { Piece, PieceType, TeamType };
