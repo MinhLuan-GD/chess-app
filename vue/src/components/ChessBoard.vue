@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { Piece, PieceType, TeamType } from "@/utils/types";
+import { Piece, Board, PieceType, TeamType } from "@/utils/types";
 import { ref, watch } from "vue";
 import { Options, Vue } from "vue-class-component";
 import Referee from "@/referee/Referee";
@@ -31,7 +31,7 @@ export default class ChessBoard extends Vue {
   activatePiece!: HTMLElement | null;
   chessBoardRef = ref() as unknown as HTMLDivElement;
 
-  board: any[] = [];
+  board: Board[] = [];
   referee!: Referee;
   gridX!: number;
   gridY!: number;
@@ -46,7 +46,7 @@ export default class ChessBoard extends Vue {
   pieces: Piece[] = [];
 
   created(): void {
-    this.teamPlay = "w";
+    this.teamPlay = "b";
     this.pieces = initChess();
     this.referee = new Referee();
     this.changeBoard();
@@ -158,18 +158,56 @@ export default class ChessBoard extends Vue {
             this.pieces
           );
 
-          if (validMove) {
+          const isEnPassantMove = this.referee.isEnPassantMove(
+            this.gridX,
+            this.gridY,
+            x,
+            y,
+            currentPiece.piece,
+            currentPiece.team,
+            this.pieces
+          );
+          const pawnDirection = currentPiece.team === TeamType.OUR ? 1 : -1;
+          if (isEnPassantMove) {
             const pieces: Piece[] = [];
             this.pieces.map((p) => {
-              if (
-                p.pieceX === currentPiece.pieceX &&
-                p.pieceY === currentPiece.pieceY
-              ) {
-                pieces.push({ ...p, pieceX: x, pieceY: y });
-              } else if (!(p.pieceX === x && p.pieceY === y)) {
-                pieces.push(p);
+              if (p.pieceX === this.gridX && p.pieceY === this.gridY) {
+                pieces.push({
+                  ...p,
+                  pieceX: x,
+                  pieceY: y,
+                  enPassant: false,
+                });
+              } else if (!(p.pieceX === x && p.pieceY === y - pawnDirection)) {
+                pieces.push({ ...p, enPassant: p.piece === PieceType.PAWN });
               }
-            }, [] as Piece[]);
+            });
+            this.pieces = pieces;
+            this.changeBoard();
+          } else if (validMove) {
+            const pieces: Piece[] = [];
+            this.pieces.map((p) => {
+              if (p.pieceX === this.gridX && p.pieceY === this.gridY) {
+                // if (
+                //   Math.abs(this.gridY - y) === 2 &&
+                //   p.piece === PieceType.PAWN
+                // ) {
+                //   pieces.push({ ...p, pieceX: x, pieceY: y, enPassant: true });
+                // } else {
+                //   pieces.push({ ...p, pieceX: x, pieceY: y });
+                // }
+                pieces.push({
+                  ...p,
+                  pieceX: x,
+                  pieceY: y,
+                  enPassant:
+                    Math.abs(this.gridY - y) === 2 &&
+                    p.piece === PieceType.PAWN,
+                });
+              } else if (!(p.pieceX === x && p.pieceY === y)) {
+                pieces.push({ ...p, enPassant: p.piece === PieceType.PAWN });
+              }
+            });
             this.pieces = pieces;
             this.changeBoard();
           }

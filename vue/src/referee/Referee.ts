@@ -18,6 +18,34 @@ export default class Referee {
     return piece != null;
   }
 
+  isEnPassantMove(
+    px: number,
+    py: number,
+    x: number,
+    y: number,
+    pieceType: PieceType,
+    team: TeamType,
+    boardState: Piece[]
+  ): boolean {
+    const pawnDirection = team === TeamType.OUR ? 1 : -1;
+
+    if (
+      pieceType === PieceType.PAWN &&
+      !this.tileIsOccupied(x, y, boardState)
+    ) {
+      if ((x - px === -1 || x - px === 1) && y - py === pawnDirection) {
+        const piece = boardState.find(
+          (p) => p.pieceX === x && p.pieceY === y - pawnDirection && p.enPassant
+        );
+        return piece != null;
+      }
+    }
+
+    // const piece = boardState.find(p => p.pieceX === x && p.pieceY === y)
+
+    return false;
+  }
+
   isValidMove(
     px: number,
     py: number,
@@ -53,8 +81,6 @@ export default class Referee {
         if (this.tileIsOccupiedOpponent(x, y, boardState, team)) {
           return true;
         }
-      } else {
-        console.log("trash");
       }
     }
     return false;

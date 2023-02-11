@@ -4,6 +4,13 @@ interface Piece {
   pieceY: number;
   piece: PieceType;
   team: TeamType;
+  enPassant?: boolean;
+}
+
+interface Board {
+  key: string;
+  black: boolean;
+  image?: string;
 }
 
 enum TeamType {
@@ -20,4 +27,4 @@ enum PieceType {
   KING,
 }
 
-export { Piece, PieceType, TeamType };
+export { Piece, PieceType, TeamType, Board };
