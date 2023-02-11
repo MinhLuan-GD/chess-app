@@ -1,116 +1,134 @@
 import { Piece, PieceType, TeamType } from "./types";
 
-export const initChess = (play: string) => {
-  const by = play === "w" ? 7 : 0;
-  const wy = play === "w" ? 0 : 7;
-  const bpy = play === "w" ? 6 : 1;
-  const wpy = play === "w" ? 1 : 6;
-  const opponent = play === "w" ? TeamType.OPPONENT : TeamType.OUR;
-  const our = play === "w" ? TeamType.OUR : TeamType.OPPONENT;
+export const initChess = () => {
   const pieces: Piece[] = [
     {
       img: "rdt.png",
       pieceX: 0,
-      pieceY: by,
+      pieceY: 7,
       piece: PieceType.ROOK,
-      team: opponent,
+      team: TeamType.OPPONENT,
     },
     {
       img: "rdt.png",
       pieceX: 7,
-      pieceY: by,
+      pieceY: 7,
       piece: PieceType.ROOK,
-      team: opponent,
+      team: TeamType.OPPONENT,
     },
-    { img: "rlt.png", pieceX: 0, pieceY: wy, piece: PieceType.ROOK, team: our },
-    { img: "rlt.png", pieceX: 7, pieceY: wy, piece: PieceType.ROOK, team: our },
+    {
+      img: "rlt.png",
+      pieceX: 0,
+      pieceY: 0,
+      piece: PieceType.ROOK,
+      team: TeamType.OUR,
+    },
+    {
+      img: "rlt.png",
+      pieceX: 7,
+      pieceY: 0,
+      piece: PieceType.ROOK,
+      team: TeamType.OUR,
+    },
     {
       img: "ndt.png",
       pieceX: 1,
-      pieceY: by,
+      pieceY: 7,
       piece: PieceType.KNIGHT,
-      team: opponent,
+      team: TeamType.OPPONENT,
     },
     {
       img: "ndt.png",
       pieceX: 6,
-      pieceY: by,
+      pieceY: 7,
       piece: PieceType.KNIGHT,
-      team: opponent,
+      team: TeamType.OPPONENT,
     },
     {
       img: "nlt.png",
       pieceX: 1,
-      pieceY: wy,
+      pieceY: 0,
       piece: PieceType.KNIGHT,
-      team: our,
+      team: TeamType.OUR,
     },
     {
       img: "nlt.png",
       pieceX: 6,
-      pieceY: wy,
+      pieceY: 0,
       piece: PieceType.KNIGHT,
-      team: our,
+      team: TeamType.OUR,
     },
     {
       img: "bdt.png",
       pieceX: 2,
-      pieceY: by,
+      pieceY: 7,
       piece: PieceType.BISHOP,
-      team: opponent,
+      team: TeamType.OPPONENT,
     },
     {
       img: "bdt.png",
       pieceX: 5,
-      pieceY: by,
+      pieceY: 7,
       piece: PieceType.BISHOP,
-      team: opponent,
+      team: TeamType.OPPONENT,
     },
     {
       img: "blt.png",
       pieceX: 2,
-      pieceY: wy,
+      pieceY: 0,
       piece: PieceType.BISHOP,
-      team: our,
+      team: TeamType.OUR,
     },
     {
       img: "blt.png",
       pieceX: 5,
-      pieceY: wy,
+      pieceY: 0,
       piece: PieceType.BISHOP,
-      team: our,
+      team: TeamType.OUR,
     },
     {
       img: "qdt.png",
       pieceX: 3,
-      pieceY: by,
+      pieceY: 7,
       piece: PieceType.QUEEN,
-      team: opponent,
+      team: TeamType.OPPONENT,
     },
-    { img: "kdt.png", pieceX: 4, pieceY: by, piece: PieceType.KING, team: our },
+    {
+      img: "kdt.png",
+      pieceX: 4,
+      pieceY: 7,
+      piece: PieceType.KING,
+      team: TeamType.OPPONENT,
+    },
     {
       img: "qlt.png",
       pieceX: 3,
-      pieceY: wy,
+      pieceY: 0,
       piece: PieceType.QUEEN,
-      team: opponent,
+      team: TeamType.OUR,
     },
-    { img: "klt.png", pieceX: 4, pieceY: wy, piece: PieceType.KING, team: our },
+    {
+      img: "klt.png",
+      pieceX: 4,
+      pieceY: 0,
+      piece: PieceType.KING,
+      team: TeamType.OUR,
+    },
   ];
   for (let i = 0; i < 8; i++) {
     pieces.push({
       img: "pdt.png",
       pieceX: i,
-      pieceY: bpy,
+      pieceY: 6,
       piece: PieceType.PAWN,
-      team: opponent,
+      team: TeamType.OPPONENT,
     });
     pieces.push({
       img: "plt.png",
       pieceX: i,
-      pieceY: wpy,
+      pieceY: 1,
       piece: PieceType.PAWN,
-      team: our,
+      team: TeamType.OUR,
     });
   }
 

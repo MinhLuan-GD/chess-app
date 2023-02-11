@@ -47,24 +47,52 @@ export default class ChessBoard extends Vue {
 
   created(): void {
     this.teamPlay = "w";
-    this.pieces = initChess(this.teamPlay);
+    this.pieces = initChess();
     this.referee = new Referee();
     this.changeBoard();
   }
 
   changeBoard() {
     this.board = [];
-    for (let j = this.verticalAxis.length - 1; j >= 0; j--)
-      for (let i = 0; i < this.horizontalAxis.length; i++) {
-        this.board.push({
-          // x: this.horizontalAxis[i],
-          // y: this.verticalAxis[j],
-          key: `${i}${j}`,
-          black: (i + j) % 2 == 0,
-          image: this.pieces.filter((p) => p.pieceX == i && p.pieceY == j)[0]
-            ?.img,
-        });
-      }
+    if (this.teamPlay === "w") {
+      for (let j = this.verticalAxis.length - 1; j >= 0; j--)
+        for (let i = 0; i < this.horizontalAxis.length; i++) {
+          this.board.push({
+            key: `${i}${j}`,
+            black: (i + j) % 2 == 0,
+            image: this.pieces.find((p) => p.pieceX === i && p.pieceY === j)
+              ?.img,
+          });
+        }
+    } else {
+      for (let j = this.verticalAxis.length - 1; j >= 0; j--)
+        for (let i = 0; i < this.horizontalAxis.length; i++) {
+          this.board.push({
+            key: `${i}${j}`,
+            black: (i + j) % 2 == 0,
+            image: this.pieces.find(
+              (p) =>
+                p.pieceX === Math.abs(i - 7) && p.pieceY === Math.abs(j - 7)
+            )?.img,
+          });
+        }
+    }
+  }
+
+  getIndexPiece(clientX: number, clientY: number): { x: number; y: number } {
+    if (this.teamPlay === "w") {
+      const x = Math.floor((clientX - this.chessBoardRef.offsetLeft) / 70);
+      const y = Math.abs(
+        Math.floor((clientY - this.chessBoardRef.offsetTop - 490) / 70)
+      );
+      return { x, y };
+    } else {
+      const x = Math.abs(
+        Math.floor((clientX - this.chessBoardRef.offsetLeft - 490) / 70)
+      );
+      const y = Math.floor((clientY - this.chessBoardRef.offsetTop) / 70);
+      return { x, y };
+    }
   }
 
   mounted(): void {
@@ -80,10 +108,10 @@ export default class ChessBoard extends Vue {
   grabPiece(e: MouseEvent) {
     const element = e.target as HTMLElement;
     if (element.classList.contains("chess-piece")) {
-      this.gridX = Math.floor((e.clientX - this.chessBoardRef.offsetLeft) / 70);
-      this.gridY = Math.abs(
-        Math.floor((e.clientY - this.chessBoardRef.offsetTop - 490) / 70)
-      );
+      const indexPiece = this.getIndexPiece(e.clientX, e.clientY);
+      this.gridX = indexPiece.x;
+      this.gridY = indexPiece.y;
+
       const x = e.clientX - 36;
       const y = e.clientY - 36;
       element.style.position = "absolute";
@@ -111,31 +139,43 @@ export default class ChessBoard extends Vue {
 
   dropPiece(e: MouseEvent) {
     if (this.activatePiece) {
-      const x = Math.floor((e.clientX - this.chessBoardRef.offsetLeft) / 70);
-      const y = Math.abs(
-        Math.floor((e.clientY - this.chessBoardRef.offsetTop - 490) / 70)
-      );
+      const { x, y } = this.getIndexPiece(e.clientX, e.clientY);
       this.activatePiece.style.position = "unset";
-      if (x !== this.gridX || y !== this.gridY) {
-        this.pieces.map((p) => {
-          if (
-            p.pieceX === this.gridX &&
-            p.pieceY === this.gridY &&
-            this.referee.isValidMove(
-              this.gridX,
-              this.gridY,
-              x,
-              y,
-              p.piece,
-              p.team,
-              this.pieces
-            )
-          ) {
-            p.pieceX = x;
-            p.pieceY = y;
+
+      if (this.gridX !== x || this.gridY !== y) {
+        const currentPiece = this.pieces.find(
+          (p) => p.pieceX === this.gridX && p.pieceY === this.gridY
+        );
+
+        if (currentPiece) {
+          const validMove = this.referee.isValidMove(
+            this.gridX,
+            this.gridY,
+            x,
+            y,
+            currentPiece.piece,
+            currentPiece.team,
+            this.pieces
+          );
+
+          if (validMove) {
+            const pieces: Piece[] = [];
+            this.pieces.map((p) => {
+              if (
+                p.pieceX === currentPiece.pieceX &&
+                p.pieceY === currentPiece.pieceY
+              ) {
+                pieces.push({ ...p, pieceX: x, pieceY: y });
+              } else if (!(p.pieceX === x && p.pieceY === y)) {
+                pieces.push(p);
+              }
+            }, [] as Piece[]);
+            this.pieces = pieces;
+            this.changeBoard();
           }
-        });
+        }
       }
+
       this.activatePiece = null;
     }
   }
