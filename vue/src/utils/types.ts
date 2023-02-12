@@ -1,7 +1,12 @@
+import { PieceType, TeamType } from "./constants";
+
+interface Position {
+  x: number;
+  y: number;
+}
 interface Piece {
   img: string;
-  pieceX: number;
-  pieceY: number;
+  position: Position;
   piece: PieceType;
   team: TeamType;
   enPassant?: boolean;
@@ -13,18 +18,4 @@ interface Board {
   image?: string;
 }
 
-enum TeamType {
-  OPPONENT,
-  OUR,
-}
-
-enum PieceType {
-  PAWN,
-  BISHOP,
-  KNIGHT,
-  ROOK,
-  QUEEN,
-  KING,
-}
-
-export { Piece, PieceType, TeamType, Board };
+export { Piece, Board, Position };

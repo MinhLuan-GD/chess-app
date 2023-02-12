@@ -16,25 +16,26 @@
 </template>
 
 <script lang="ts">
-import { Piece, Board, PieceType, TeamType } from "@/utils/types";
+import { Piece, Board, Position } from "@/utils/types";
+import {
+  PieceType,
+  TeamType,
+  initialBoardState,
+  samePosition,
+} from "@/utils/constants";
 import { ref, watch } from "vue";
 import { Options, Vue } from "vue-class-component";
 import Referee from "@/referee/Referee";
 import Tile from "./Tile.vue";
-import { initChess } from "@/utils/init-chess";
 
 @Options({ components: { Tile } })
 export default class ChessBoard extends Vue {
-  verticalAxis = [1, 2, 3, 4, 5, 6, 7, 8];
-  horizontalAxis = ["a", "b", "c", "d", "e", "f", "g", "h"];
-
   activatePiece!: HTMLElement | null;
   chessBoardRef = ref() as unknown as HTMLDivElement;
 
   board: Board[] = [];
   referee!: Referee;
-  gridX!: number;
-  gridY!: number;
+  grabPosition!: Position;
 
   teamPlay!: string;
 
@@ -46,8 +47,8 @@ export default class ChessBoard extends Vue {
   pieces: Piece[] = [];
 
   created(): void {
-    this.teamPlay = "b";
-    this.pieces = initChess();
+    this.teamPlay = "w";
+    this.pieces = initialBoardState();
     this.referee = new Referee();
     this.changeBoard();
   }
@@ -55,41 +56,39 @@ export default class ChessBoard extends Vue {
   changeBoard() {
     this.board = [];
     if (this.teamPlay === "w") {
-      for (let j = this.verticalAxis.length - 1; j >= 0; j--)
-        for (let i = 0; i < this.horizontalAxis.length; i++) {
+      for (let j = 7; j >= 0; j--)
+        for (let i = 0; i < 8; i++) {
           this.board.push({
             key: `${i}${j}`,
             black: (i + j) % 2 == 0,
-            image: this.pieces.find((p) => p.pieceX === i && p.pieceY === j)
-              ?.img,
+            image: this.pieces.find(
+              (p) => p.position.x === i && p.position.y === j
+            )?.img,
           });
         }
     } else {
-      for (let j = this.verticalAxis.length - 1; j >= 0; j--)
-        for (let i = 0; i < this.horizontalAxis.length; i++) {
+      for (let j = 7; j >= 0; j--)
+        for (let i = 0; i < 8; i++) {
           this.board.push({
             key: `${i}${j}`,
             black: (i + j) % 2 == 0,
             image: this.pieces.find(
               (p) =>
-                p.pieceX === Math.abs(i - 7) && p.pieceY === Math.abs(j - 7)
+                p.position.x === Math.abs(i - 7) &&
+                p.position.y === Math.abs(j - 7)
             )?.img,
           });
         }
     }
   }
 
-  getIndexPiece(clientX: number, clientY: number): { x: number; y: number } {
+  getIndexPiece(clientX: number, clientY: number): Position {
     if (this.teamPlay === "w") {
       const x = Math.floor((clientX - this.chessBoardRef.offsetLeft) / 70);
-      const y = Math.abs(
-        Math.floor((clientY - this.chessBoardRef.offsetTop - 490) / 70)
-      );
+      const y = 7 - Math.floor((clientY - this.chessBoardRef.offsetTop) / 70);
       return { x, y };
     } else {
-      const x = Math.abs(
-        Math.floor((clientX - this.chessBoardRef.offsetLeft - 490) / 70)
-      );
+      const x = 7 - Math.floor((clientX - this.chessBoardRef.offsetLeft) / 70);
       const y = Math.floor((clientY - this.chessBoardRef.offsetTop) / 70);
       return { x, y };
     }
@@ -108,10 +107,7 @@ export default class ChessBoard extends Vue {
   grabPiece(e: MouseEvent) {
     const element = e.target as HTMLElement;
     if (element.classList.contains("chess-piece")) {
-      const indexPiece = this.getIndexPiece(e.clientX, e.clientY);
-      this.gridX = indexPiece.x;
-      this.gridY = indexPiece.y;
-
+      this.grabPosition = this.getIndexPiece(e.clientX, e.clientY);
       const x = e.clientX - 36;
       const y = e.clientY - 36;
       element.style.position = "absolute";
@@ -142,27 +138,23 @@ export default class ChessBoard extends Vue {
       const { x, y } = this.getIndexPiece(e.clientX, e.clientY);
       this.activatePiece.style.position = "unset";
 
-      if (this.gridX !== x || this.gridY !== y) {
-        const currentPiece = this.pieces.find(
-          (p) => p.pieceX === this.gridX && p.pieceY === this.gridY
+      if (!samePosition(this.grabPosition, { x, y })) {
+        const currentPiece = this.pieces.find((p) =>
+          samePosition(p.position, this.grabPosition)
         );
 
         if (currentPiece) {
           const validMove = this.referee.isValidMove(
-            this.gridX,
-            this.gridY,
-            x,
-            y,
+            this.grabPosition,
+            { x, y },
             currentPiece.piece,
             currentPiece.team,
             this.pieces
           );
 
           const isEnPassantMove = this.referee.isEnPassantMove(
-            this.gridX,
-            this.gridY,
-            x,
-            y,
+            this.grabPosition,
+            { x, y },
             currentPiece.piece,
             currentPiece.team,
             this.pieces
@@ -171,15 +163,18 @@ export default class ChessBoard extends Vue {
           if (isEnPassantMove) {
             const pieces: Piece[] = [];
             this.pieces.map((p) => {
-              if (p.pieceX === this.gridX && p.pieceY === this.gridY) {
+              if (samePosition(p.position, this.grabPosition)) {
                 pieces.push({
                   ...p,
-                  pieceX: x,
-                  pieceY: y,
+                  position: { x, y },
                   enPassant: false,
                 });
-              } else if (!(p.pieceX === x && p.pieceY === y - pawnDirection)) {
-                pieces.push({ ...p, enPassant: p.piece === PieceType.PAWN });
+              } else if (
+                !(p.position.x === x && p.position.y === y - pawnDirection)
+              ) {
+                if (p.piece === PieceType.PAWN)
+                  pieces.push({ ...p, enPassant: false });
+                else pieces.push(p);
               }
             });
             this.pieces = pieces;
@@ -187,25 +182,18 @@ export default class ChessBoard extends Vue {
           } else if (validMove) {
             const pieces: Piece[] = [];
             this.pieces.map((p) => {
-              if (p.pieceX === this.gridX && p.pieceY === this.gridY) {
-                // if (
-                //   Math.abs(this.gridY - y) === 2 &&
-                //   p.piece === PieceType.PAWN
-                // ) {
-                //   pieces.push({ ...p, pieceX: x, pieceY: y, enPassant: true });
-                // } else {
-                //   pieces.push({ ...p, pieceX: x, pieceY: y });
-                // }
+              if (samePosition(p.position, this.grabPosition)) {
                 pieces.push({
                   ...p,
-                  pieceX: x,
-                  pieceY: y,
+                  position: { x, y },
                   enPassant:
-                    Math.abs(this.gridY - y) === 2 &&
+                    Math.abs(this.grabPosition.y - y) === 2 &&
                     p.piece === PieceType.PAWN,
                 });
-              } else if (!(p.pieceX === x && p.pieceY === y)) {
-                pieces.push({ ...p, enPassant: p.piece === PieceType.PAWN });
+              } else if (!samePosition(p.position, { x, y })) {
+                if (p.piece === PieceType.PAWN)
+                  pieces.push({ ...p, enPassant: false });
+                else pieces.push(p);
               }
             });
             this.pieces = pieces;

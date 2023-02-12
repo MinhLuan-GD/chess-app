@@ -1,8 +1,11 @@
-import { Piece, PieceType, TeamType } from "@/utils/types";
+import { Piece, Position } from "@/utils/types";
+import { PieceType, TeamType } from "@/utils/constants";
 
 export default class Referee {
   tileIsOccupied(x: number, y: number, boardState: Piece[]): boolean {
-    const piece = boardState.find((p) => p.pieceX === x && p.pieceY === y);
+    const piece = boardState.find(
+      (p) => p.position.x === x && p.position.y === y
+    );
     return piece != null;
   }
 
@@ -13,44 +16,40 @@ export default class Referee {
     team: TeamType
   ): boolean {
     const piece = boardState.find(
-      (p) => p.pieceX === x && p.pieceY === y && p.team !== team
+      (p) => p.position.x === x && p.position.y === y && p.team !== team
     );
     return piece != null;
   }
 
   isEnPassantMove(
-    px: number,
-    py: number,
-    x: number,
-    y: number,
+    initialPosition: Position,
+    desiredPosition: Position,
     pieceType: PieceType,
     team: TeamType,
     boardState: Piece[]
   ): boolean {
     const pawnDirection = team === TeamType.OUR ? 1 : -1;
-
-    if (
-      pieceType === PieceType.PAWN &&
-      !this.tileIsOccupied(x, y, boardState)
-    ) {
-      if ((x - px === -1 || x - px === 1) && y - py === pawnDirection) {
+    if (pieceType === PieceType.PAWN) {
+      if (
+        (desiredPosition.x - initialPosition.x === -1 ||
+          desiredPosition.x - initialPosition.x === 1) &&
+        desiredPosition.y - initialPosition.y === pawnDirection
+      ) {
         const piece = boardState.find(
-          (p) => p.pieceX === x && p.pieceY === y - pawnDirection && p.enPassant
+          (p) =>
+            p.position.x === desiredPosition.x &&
+            p.position.y === desiredPosition.y - pawnDirection &&
+            p.enPassant
         );
         return piece != null;
       }
     }
-
-    // const piece = boardState.find(p => p.pieceX === x && p.pieceY === y)
-
     return false;
   }
 
   isValidMove(
-    px: number,
-    py: number,
-    x: number,
-    y: number,
+    initialPosition: Position,
+    desiredPosition: Position,
     piece: PieceType,
     team: TeamType,
     boardState: Piece[]
@@ -60,25 +59,62 @@ export default class Referee {
       const pawnDirection = team === TeamType.OUR ? 1 : -1;
 
       // Movement logic
-      if (px === x && py === specialRow && y - py === 2 * pawnDirection) {
+      if (
+        initialPosition.x === desiredPosition.x &&
+        initialPosition.y === specialRow &&
+        desiredPosition.y - initialPosition.y === 2 * pawnDirection
+      ) {
         if (
-          !this.tileIsOccupied(x, y, boardState) &&
-          !this.tileIsOccupied(x, y - pawnDirection, boardState)
+          !this.tileIsOccupied(
+            desiredPosition.x,
+            desiredPosition.y,
+            boardState
+          ) &&
+          !this.tileIsOccupied(
+            desiredPosition.x,
+            desiredPosition.y - pawnDirection,
+            boardState
+          )
         ) {
           return true;
         }
-      } else if (px === x && y - py === pawnDirection) {
-        if (!this.tileIsOccupied(x, y, boardState)) {
+      } else if (
+        initialPosition.x === desiredPosition.x &&
+        desiredPosition.y - initialPosition.y === pawnDirection
+      ) {
+        if (
+          !this.tileIsOccupied(desiredPosition.x, desiredPosition.y, boardState)
+        ) {
           return true;
         }
       }
       // Attack logic
-      else if (x - px === -1 && y - py === pawnDirection) {
-        if (this.tileIsOccupiedOpponent(x, y, boardState, team)) {
+      else if (
+        desiredPosition.x - initialPosition.x === -1 &&
+        desiredPosition.y - initialPosition.y === pawnDirection
+      ) {
+        if (
+          this.tileIsOccupiedOpponent(
+            desiredPosition.x,
+            desiredPosition.y,
+            boardState,
+            team
+          )
+        ) {
           return true;
         }
-      } else if (x - px === 1 && y - py === pawnDirection) {
-        if (this.tileIsOccupiedOpponent(x, y, boardState, team)) {
+      } else if (
+        desiredPosition.x - initialPosition.x === 1 &&
+        desiredPosition.y - initialPosition.y === pawnDirection
+      ) {
+        if (
+          this.tileIsOccupiedOpponent(
+            desiredPosition.x,
+            desiredPosition.y,
+            boardState,
+            team
+          )
+        ) {
           return true;
         }
       }

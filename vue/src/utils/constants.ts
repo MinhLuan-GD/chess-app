@@ -1,116 +1,107 @@
-import { Piece, PieceType, TeamType } from "./types";
+import { Piece, Position } from "./types";
 
-export const initChess = () => {
+const VERTICAL_AXIS = [1, 2, 3, 4, 5, 6, 7, 8];
+const HORIZONTAL_AXIS = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
+const samePosition = (a: Position, b: Position) => {
+  return a.x === b.x && a.y === b.y;
+};
+
+const initialBoardState = () => {
   const pieces: Piece[] = [
     {
       img: "rdt.png",
-      pieceX: 0,
-      pieceY: 7,
+      position: { x: 0, y: 7 },
       piece: PieceType.ROOK,
       team: TeamType.OPPONENT,
     },
     {
       img: "rdt.png",
-      pieceX: 7,
-      pieceY: 7,
+      position: { x: 7, y: 7 },
       piece: PieceType.ROOK,
       team: TeamType.OPPONENT,
     },
     {
       img: "rlt.png",
-      pieceX: 0,
-      pieceY: 0,
+      position: { x: 0, y: 0 },
       piece: PieceType.ROOK,
       team: TeamType.OUR,
     },
     {
       img: "rlt.png",
-      pieceX: 7,
-      pieceY: 0,
+      position: { x: 7, y: 0 },
       piece: PieceType.ROOK,
       team: TeamType.OUR,
     },
     {
       img: "ndt.png",
-      pieceX: 1,
-      pieceY: 7,
+      position: { x: 1, y: 7 },
       piece: PieceType.KNIGHT,
       team: TeamType.OPPONENT,
     },
     {
       img: "ndt.png",
-      pieceX: 6,
-      pieceY: 7,
+      position: { x: 6, y: 7 },
       piece: PieceType.KNIGHT,
       team: TeamType.OPPONENT,
     },
     {
       img: "nlt.png",
-      pieceX: 1,
-      pieceY: 0,
+      position: { x: 1, y: 0 },
       piece: PieceType.KNIGHT,
       team: TeamType.OUR,
     },
     {
       img: "nlt.png",
-      pieceX: 6,
-      pieceY: 0,
+      position: { x: 6, y: 0 },
       piece: PieceType.KNIGHT,
       team: TeamType.OUR,
     },
     {
       img: "bdt.png",
-      pieceX: 2,
-      pieceY: 7,
+      position: { x: 2, y: 7 },
       piece: PieceType.BISHOP,
       team: TeamType.OPPONENT,
     },
     {
       img: "bdt.png",
-      pieceX: 5,
-      pieceY: 7,
+      position: { x: 5, y: 7 },
       piece: PieceType.BISHOP,
       team: TeamType.OPPONENT,
     },
     {
       img: "blt.png",
-      pieceX: 2,
-      pieceY: 0,
+      position: { x: 2, y: 0 },
       piece: PieceType.BISHOP,
       team: TeamType.OUR,
     },
     {
       img: "blt.png",
-      pieceX: 5,
-      pieceY: 0,
+      position: { x: 5, y: 0 },
       piece: PieceType.BISHOP,
       team: TeamType.OUR,
     },
     {
       img: "qdt.png",
-      pieceX: 3,
-      pieceY: 7,
+      position: { x: 3, y: 7 },
       piece: PieceType.QUEEN,
       team: TeamType.OPPONENT,
     },
     {
       img: "kdt.png",
-      pieceX: 4,
-      pieceY: 7,
+      position: { x: 4, y: 7 },
       piece: PieceType.KING,
       team: TeamType.OPPONENT,
     },
     {
       img: "qlt.png",
-      pieceX: 3,
-      pieceY: 0,
+      position: { x: 3, y: 0 },
       piece: PieceType.QUEEN,
       team: TeamType.OUR,
     },
     {
       img: "klt.png",
-      pieceX: 4,
-      pieceY: 0,
+      position: { x: 4, y: 0 },
       piece: PieceType.KING,
       team: TeamType.OUR,
     },
@@ -118,19 +109,39 @@ export const initChess = () => {
   for (let i = 0; i < 8; i++) {
     pieces.push({
       img: "pdt.png",
-      pieceX: i,
-      pieceY: 6,
+      position: { x: i, y: 6 },
       piece: PieceType.PAWN,
       team: TeamType.OPPONENT,
     });
     pieces.push({
       img: "plt.png",
-      pieceX: i,
-      pieceY: 1,
+      position: { x: i, y: 1 },
       piece: PieceType.PAWN,
       team: TeamType.OUR,
     });
   }
 
   return pieces;
+};
+
+enum TeamType {
+  OPPONENT,
+  OUR,
+}
+
+enum PieceType {
+  PAWN,
+  BISHOP,
+  KNIGHT,
+  ROOK,
+  QUEEN,
+  KING,
+}
+export {
+  VERTICAL_AXIS,
+  HORIZONTAL_AXIS,
+  TeamType,
+  PieceType,
+  initialBoardState,
+  samePosition,
 };
