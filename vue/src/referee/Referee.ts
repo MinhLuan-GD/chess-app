@@ -1,22 +1,30 @@
 import { Piece, Position } from "@/utils/types";
-import { PieceType, TeamType } from "@/utils/constants";
+import { PieceType, samePosition, TeamType } from "@/utils/constants";
 
 export default class Referee {
-  tileIsOccupied(x: number, y: number, boardState: Piece[]): boolean {
-    const piece = boardState.find(
-      (p) => p.position.x === x && p.position.y === y
+  tileIsEmptyOrOccupiedByOpponent(
+    position: Position,
+    boardState: Piece[],
+    team: TeamType
+  ) {
+    return (
+      !this.tileIsOccupied(position, boardState) ||
+      this.tileIsOccupiedOpponent(position, boardState, team)
     );
+  }
+
+  tileIsOccupied(position: Position, boardState: Piece[]): boolean {
+    const piece = boardState.find((p) => samePosition(p.position, position));
     return piece != null;
   }
 
   tileIsOccupiedOpponent(
-    x: number,
-    y: number,
+    position: Position,
     boardState: Piece[],
     team: TeamType
   ): boolean {
     const piece = boardState.find(
-      (p) => p.position.x === x && p.position.y === y && p.team !== team
+      (p) => samePosition(p.position, position) && p.team !== team
     );
     return piece != null;
   }
@@ -65,14 +73,9 @@ export default class Referee {
         desiredPosition.y - initialPosition.y === 2 * pawnDirection
       ) {
         if (
+          !this.tileIsOccupied(desiredPosition, boardState) &&
           !this.tileIsOccupied(
-            desiredPosition.x,
-            desiredPosition.y,
-            boardState
-          ) &&
-          !this.tileIsOccupied(
-            desiredPosition.x,
-            desiredPosition.y - pawnDirection,
+            { ...desiredPosition, y: desiredPosition.y - pawnDirection },
             boardState
           )
         ) {
@@ -82,9 +85,7 @@ export default class Referee {
         initialPosition.x === desiredPosition.x &&
         desiredPosition.y - initialPosition.y === pawnDirection
       ) {
-        if (
-          !this.tileIsOccupied(desiredPosition.x, desiredPosition.y, boardState)
-        ) {
+        if (!this.tileIsOccupied(desiredPosition, boardState)) {
           return true;
         }
       }
@@ -93,32 +94,50 @@ export default class Referee {
         desiredPosition.x - initialPosition.x === -1 &&
         desiredPosition.y - initialPosition.y === pawnDirection
       ) {
-        if (
-          this.tileIsOccupiedOpponent(
-            desiredPosition.x,
-            desiredPosition.y,
-            boardState,
-            team
-          )
-        ) {
+        if (this.tileIsOccupiedOpponent(desiredPosition, boardState, team)) {
           return true;
         }
       } else if (
         desiredPosition.x - initialPosition.x === 1 &&
         desiredPosition.y - initialPosition.y === pawnDirection
       ) {
-        if (
-          this.tileIsOccupiedOpponent(
-            desiredPosition.x,
-            desiredPosition.y,
-            boardState,
-            team
-          )
-        ) {
+        if (this.tileIsOccupiedOpponent(desiredPosition, boardState, team)) {
           return true;
         }
       }
+    } else if (piece === PieceType.KNIGHT) {
+      for (let i = -1; i < 2; i += 2) {
+        for (let j = -1; j < 2; j += 2) {
+          if (desiredPosition.y - initialPosition.y === 2 * i) {
+            if (desiredPosition.x - initialPosition.x === j) {
+              if (
+                this.tileIsEmptyOrOccupiedByOpponent(
+                  desiredPosition,
+                  boardState,
+                  team
+                )
+              ) {
+                return true;
+              }
+            }
+          }
+          if (desiredPosition.x - initialPosition.x === 2 * i) {
+            if (desiredPosition.y - initialPosition.y === j) {
+              if (
+                this.tileIsEmptyOrOccupiedByOpponent(
+                  desiredPosition,
+                  boardState,
+                  team
+                )
+              ) {
+                return true;
+              }
+            }
+          }
+        }
+      }
     }
+
     return false;
   }
 }

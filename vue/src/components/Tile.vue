@@ -1,10 +1,6 @@
 <template>
   <div :class="black ? 'tile black-tile' : 'tile while-tile'">
-    <div
-      v-if="pieceImage"
-      class="chess-piece"
-      :style="`background-image: url(${url(pieceImage)});`"
-    ></div>
+    <div v-if="pieceImage" class="chess-piece" :style="url(pieceImage)"></div>
   </div>
 </template>
 
@@ -22,7 +18,7 @@ export default class Tile extends Vue {
   pieceImage?: string;
 
   url(name: string) {
-    return `/img/pieces/${name}`;
+    return `background-image: url(/img/pieces/${name});`;
   }
 }
 </script>
