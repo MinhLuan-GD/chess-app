@@ -136,6 +136,100 @@ export default class Referee {
           }
         }
       }
+    } else if (piece === PieceType.BISHOP) {
+      for (let i = 1; i < 8; i++) {
+        if (
+          desiredPosition.x > initialPosition.x &&
+          desiredPosition.y > initialPosition.y
+        ) {
+          const passedPosition: Position = {
+            x: initialPosition.x + i,
+            y: initialPosition.y + i,
+          };
+          if (samePosition(passedPosition, desiredPosition)) {
+            if (
+              this.tileIsEmptyOrOccupiedByOpponent(
+                passedPosition,
+                boardState,
+                team
+              )
+            ) {
+              return true;
+            }
+          } else if (this.tileIsOccupied(passedPosition, boardState)) {
+            break;
+          }
+        }
+
+        if (
+          desiredPosition.x > initialPosition.x &&
+          desiredPosition.y < initialPosition.y
+        ) {
+          const passedPosition: Position = {
+            x: initialPosition.x + i,
+            y: initialPosition.y - i,
+          };
+          if (samePosition(passedPosition, desiredPosition)) {
+            if (
+              this.tileIsEmptyOrOccupiedByOpponent(
+                passedPosition,
+                boardState,
+                team
+              )
+            ) {
+              return true;
+            }
+          } else if (this.tileIsOccupied(passedPosition, boardState)) {
+            break;
+          }
+        }
+
+        if (
+          desiredPosition.x < initialPosition.x &&
+          desiredPosition.y < initialPosition.y
+        ) {
+          const passedPosition: Position = {
+            x: initialPosition.x - i,
+            y: initialPosition.y - i,
+          };
+          if (samePosition(passedPosition, desiredPosition)) {
+            if (
+              this.tileIsEmptyOrOccupiedByOpponent(
+                passedPosition,
+                boardState,
+                team
+              )
+            ) {
+              return true;
+            }
+          } else if (this.tileIsOccupied(passedPosition, boardState)) {
+            break;
+          }
+        }
+
+        if (
+          desiredPosition.x < initialPosition.x &&
+          desiredPosition.y > initialPosition.y
+        ) {
+          const passedPosition: Position = {
+            x: initialPosition.x - i,
+            y: initialPosition.y + i,
+          };
+          if (samePosition(passedPosition, desiredPosition)) {
+            if (
+              this.tileIsEmptyOrOccupiedByOpponent(
+                passedPosition,
+                boardState,
+                team
+              )
+            ) {
+              return true;
+            }
+          } else if (this.tileIsOccupied(passedPosition, boardState)) {
+            break;
+          }
+        }
+      }
     }
 
     return false;
