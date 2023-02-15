@@ -305,6 +305,39 @@ export default class Referee {
     team: TeamType,
     boardState: Piece[]
   ): boolean {
+    for (let i = 1; i < 8; i++) {
+      let multiplierX = 0;
+      let multiplierY = 0;
+
+      if (desiredPosition.x < initialPosition.x) {
+        multiplierX = -1;
+      } else if (desiredPosition.x > initialPosition.x) {
+        multiplierX = 1;
+      }
+
+      if (desiredPosition.y < initialPosition.y) {
+        multiplierY = -1;
+      } else if (desiredPosition.y > initialPosition.y) {
+        multiplierY = 1;
+      }
+
+      const passedPosition: Position = {
+        x: initialPosition.x + i * multiplierX,
+        y: initialPosition.y + i * multiplierY,
+      };
+      if (samePosition(passedPosition, desiredPosition)) {
+        if (
+          this.tileIsEmptyOrOccupiedByOpponent(passedPosition, boardState, team)
+        ) {
+          return true;
+        }
+      } else {
+        if (this.tileIsOccupied(passedPosition, boardState)) {
+          break;
+        }
+      }
+    }
+
     return false;
   }
 
