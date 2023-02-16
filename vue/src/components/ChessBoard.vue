@@ -1,18 +1,18 @@
 <template>
-  <div :class="$style['pawn-promotion-modal']">
-    <div @click="() => promotionPawn()">
+  <div :class="$style['pawn-promotion-modal']" ref="modalRef">
+    <div @click="() => promotePawn(pieceType.ROOK)">
       <img src="@/assets/Chess_rlt60.png" alt="rook" />
       <span>Rook</span>
     </div>
-    <div @click="() => promotionPawn()">
+    <div @click="() => promotePawn(pieceType.BISHOP)">
       <img src="@/assets/Chess_blt60.png" alt="bishop" />
       <span>Bishop</span>
     </div>
-    <div @click="() => promotionPawn()">
+    <div @click="() => promotePawn(pieceType.KNIGHT)">
       <img src="@/assets/Chess_klt60.png" alt="knight" />
       <span>Knight</span>
     </div>
-    <div @click="() => promotionPawn()">
+    <div @click="() => promotePawn(pieceType.QUEEN)">
       <img src="@/assets/Chess_qlt60.png" alt="queen" />
       <span>Queen</span>
     </div>
@@ -41,7 +41,7 @@ import {
   initialBoardState,
   samePosition,
 } from "@/utils/constants";
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { Options, Vue } from "vue-class-component";
 import Referee from "@/referee/Referee";
 import Tile from "./Tile.vue";
@@ -50,11 +50,13 @@ import Tile from "./Tile.vue";
 export default class ChessBoard extends Vue {
   activatePiece!: HTMLElement | null;
   chessBoardRef = ref() as unknown as HTMLDivElement;
+  modalRef = ref() as unknown as HTMLDivElement;
 
   board: Board[] = [];
   referee!: Referee;
   grabPosition!: Position;
 
+  pieceType = PieceType;
   teamPlay!: string;
 
   minX!: number;
@@ -62,6 +64,7 @@ export default class ChessBoard extends Vue {
   maxX!: number;
   maxY!: number;
 
+  promotionPawn!: Piece;
   pieces: Piece[] = [];
 
   created(): void {
@@ -113,7 +116,6 @@ export default class ChessBoard extends Vue {
   }
 
   mounted(): void {
-    watch([this.pieces], () => this.changeBoard());
     this.minX = this.chessBoardRef.offsetLeft - 10;
     this.minY = this.chessBoardRef.offsetTop - 10;
     this.maxX =
@@ -201,8 +203,11 @@ export default class ChessBoard extends Vue {
             const pieces: Piece[] = [];
             this.pieces.map((p) => {
               if (samePosition(p.position, this.grabPosition)) {
-                let promotionRow = p.team === TeamType.OUR ? 7 : 0;
-
+                const promotionRow = p.team === TeamType.OUR ? 7 : 0;
+                if (y === promotionRow && p.piece === PieceType.PAWN) {
+                  this.modalRef.style.display = "block";
+                  this.promotionPawn = { ...p, position: { x, y } };
+                }
                 pieces.push({
                   ...p,
                   position: { x, y },
@@ -226,12 +231,32 @@ export default class ChessBoard extends Vue {
     }
   }
 
-  promotionPawn() {
-    console.log();
+  promotePawn(piece: PieceType) {
+    this.modalRef.style.display = "none";
+    this.pieces.forEach((p) => {
+      if (samePosition(p.position, this.promotionPawn.position)) {
+        p.piece = piece;
+        const team = this.teamPlay === "w" ? "l" : "d";
+        switch (piece) {
+          case PieceType.ROOK:
+            p.img = `r${team}t.png`;
+            break;
+          case PieceType.BISHOP:
+            p.img = `b${team}t.png`;
+            break;
+          case PieceType.KNIGHT:
+            p.img = `n${team}t.png`;
+            break;
+          case PieceType.QUEEN:
+            p.img = `q${team}t.png`;
+            break;
+        }
+      }
+    });
+    this.changeBoard();
   }
 }
 </script>
-
 <style lang="scss" module>
 .chess-board {
   display: grid;
@@ -242,6 +267,7 @@ export default class ChessBoard extends Vue {
   width: 560px;
 }
 .pawn-promotion-modal {
+  display: none;
   position: absolute;
   z-index: 2;
   width: 140px;
