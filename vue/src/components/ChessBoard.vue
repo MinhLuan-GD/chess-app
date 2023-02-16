@@ -1,9 +1,27 @@
 <template>
+  <div :class="$style['pawn-promotion-modal']">
+    <div @click="() => promotionPawn()">
+      <img src="@/assets/Chess_rlt60.png" alt="rook" />
+      <span>Rook</span>
+    </div>
+    <div @click="() => promotionPawn()">
+      <img src="@/assets/Chess_blt60.png" alt="bishop" />
+      <span>Bishop</span>
+    </div>
+    <div @click="() => promotionPawn()">
+      <img src="@/assets/Chess_klt60.png" alt="knight" />
+      <span>Knight</span>
+    </div>
+    <div @click="() => promotionPawn()">
+      <img src="@/assets/Chess_qlt60.png" alt="queen" />
+      <span>Queen</span>
+    </div>
+  </div>
   <div
     @mousedown="(e) => grabPiece(e)"
     @mousemove="(e) => movePiece(e)"
     @mouseup="(e) => dropPiece(e)"
-    class="chess-board"
+    :class="$style['chess-board']"
     ref="chessBoardRef"
   >
     <Tile
@@ -183,6 +201,8 @@ export default class ChessBoard extends Vue {
             const pieces: Piece[] = [];
             this.pieces.map((p) => {
               if (samePosition(p.position, this.grabPosition)) {
+                let promotionRow = p.team === TeamType.OUR ? 7 : 0;
+
                 pieces.push({
                   ...p,
                   position: { x, y },
@@ -205,10 +225,14 @@ export default class ChessBoard extends Vue {
       this.activatePiece = null;
     }
   }
+
+  promotionPawn() {
+    console.log();
+  }
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" module>
 .chess-board {
   display: grid;
   position: relative;
@@ -216,5 +240,31 @@ export default class ChessBoard extends Vue {
   grid-template-rows: repeat(8, 70px);
   color: rgb(255, 0, 0);
   width: 560px;
+}
+.pawn-promotion-modal {
+  position: absolute;
+  z-index: 2;
+  width: 140px;
+  height: 260px;
+  left: 210px;
+  top: 150px;
+  background-color: aliceblue;
+  padding: 10px;
+  & div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    &:hover {
+      background-color: antiquewhite;
+    }
+    & span {
+      width: 60px;
+    }
+    & img {
+      width: 60px;
+      height: 60px;
+    }
+  }
 }
 </style>
