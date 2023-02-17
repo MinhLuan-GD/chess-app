@@ -8,11 +8,7 @@
 import ChessBoard from "@/components/ChessBoard.vue";
 import { Options, Vue } from "vue-class-component";
 
-@Options({
-  components: {
-    ChessBoard,
-  },
-})
+@Options({ components: { ChessBoard } })
 export default class GameView extends Vue {}
 </script>
 
