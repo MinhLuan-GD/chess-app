@@ -1,26 +1,26 @@
 <template>
   <div :class="$style['pawn-promotion-modal']" ref="modalRef">
     <div @click="() => promotePawn(pieceType.ROOK)">
-      <img src="@/assets/Chess_rlt60.png" alt="rook" />
+      <img :src="url('r')" alt="rook" />
       <span>Rook</span>
     </div>
     <div @click="() => promotePawn(pieceType.BISHOP)">
-      <img src="@/assets/Chess_blt60.png" alt="bishop" />
+      <img :src="url('b')" alt="bishop" />
       <span>Bishop</span>
     </div>
     <div @click="() => promotePawn(pieceType.KNIGHT)">
-      <img src="@/assets/Chess_klt60.png" alt="knight" />
+      <img :src="url('n')" alt="knight" />
       <span>Knight</span>
     </div>
     <div @click="() => promotePawn(pieceType.QUEEN)">
-      <img src="@/assets/Chess_qlt60.png" alt="queen" />
+      <img :src="url('q')" alt="queen" />
       <span>Queen</span>
     </div>
   </div>
   <div
     @mousedown="(e) => grabPiece(e)"
-    @mousemove="(e) => movePiece(e)"
-    @mouseup="(e) => dropPiece(e)"
+    @dragstart="() => false"
+    @contextmenu.prevent="() => false"
     :class="$style['chess-board']"
     ref="chessBoardRef"
   >
@@ -36,16 +36,12 @@
 
 <script lang="ts">
 import { Piece, Board, Position } from "@/utils/types";
-import {
-  PieceType,
-  TeamType,
-  initialBoardState,
-  samePosition,
-} from "@/utils/constants";
+import { PieceType, TeamType, samePosition } from "@/utils/constants";
 import { ref } from "vue";
 import { Options, Vue } from "vue-class-component";
 import Referee from "@/referee/Referee";
 import Tile from "./Tile.vue";
+import store from "@/store";
 
 @Options({ components: { Tile } })
 export default class ChessBoard extends Vue {
@@ -65,18 +61,18 @@ export default class ChessBoard extends Vue {
   maxX!: number;
   maxY!: number;
 
+  pieces = store.state.referee.pieces;
+
   promotionPawn!: Piece;
-  pieces: Piece[] = [];
 
   created(): void {
-    this.teamPlay = "b";
-    this.pieces = initialBoardState();
+    this.teamPlay = "w";
     this.referee = new Referee();
     this.changeBoard();
   }
 
   changeBoard() {
-    this.board = [];
+    const board = [];
     if (this.teamPlay === "w") {
       for (let j = 7; j >= 0; j--)
         for (let i = 0; i < 8; i++) {
@@ -86,7 +82,7 @@ export default class ChessBoard extends Vue {
               samePosition(p.position, this.grabPosition)
             );
           }
-          this.board.push({
+          board.push({
             key: `${i}${j}`,
             black: (i + j) % 2 == 0,
             image: this.pieces.find(
@@ -108,7 +104,7 @@ export default class ChessBoard extends Vue {
               samePosition(p.position, this.grabPosition)
             );
           }
-          this.board.push({
+          board.push({
             key: `${i}${j}`,
             black: (i + j) % 2 == 0,
             image: this.pieces.find(
@@ -122,6 +118,7 @@ export default class ChessBoard extends Vue {
           });
         }
     }
+    this.board = board;
   }
 
   getIndexPiece(clientX: number, clientY: number): Position {
@@ -145,18 +142,27 @@ export default class ChessBoard extends Vue {
       this.chessBoardRef.offsetTop + this.chessBoardRef.clientHeight - 60;
   }
 
+  url(chess: string) {
+    const team = this.teamPlay === "b" ? "d" : "l";
+    return require(`@/assets/Chess_${chess}${team}t60.png`);
+  }
+
   grabPiece(e: MouseEvent) {
     const element = e.target as HTMLElement;
     if (element.classList.contains("chess-piece")) {
+      document.addEventListener("mousemove", this.movePiece);
       this.grabPosition = this.getIndexPiece(e.clientX, e.clientY);
-      const x = e.clientX - 36;
-      const y = e.clientY - 36;
       element.style.position = "absolute";
-      element.style.left = `${x}px`;
-      element.style.top = `${y}px`;
+      element.style.zIndex = "3";
       this.activatePiece = element;
+      element.onmouseup = (e) => {
+        this.dropPiece(e);
+        document.removeEventListener("mousemove", this.movePiece);
+        element.onmouseup = null;
+      };
+      this.updateValidMoves();
+      this.changeBoard();
     }
-    this.updateValidMoves();
   }
 
   movePiece(e: MouseEvent) {
@@ -180,6 +186,9 @@ export default class ChessBoard extends Vue {
     if (this.activatePiece) {
       const { x, y } = this.getIndexPiece(e.clientX, e.clientY);
       this.activatePiece.style.position = "unset";
+      this.activatePiece.style.top = "unset";
+      this.activatePiece.style.left = "unset";
+      this.activatePiece.style.zIndex = "1";
 
       if (!samePosition(this.grabPosition, { x, y })) {
         const currentPiece = this.pieces.find((p) =>
@@ -195,7 +204,7 @@ export default class ChessBoard extends Vue {
             this.pieces
           );
 
-          const isEnPassantMove = this.referee.isEnPassantMove(
+          const enPassantMove = this.referee.isEnPassantMove(
             this.grabPosition,
             { x, y },
             currentPiece.type,
@@ -203,10 +212,10 @@ export default class ChessBoard extends Vue {
             this.pieces
           );
           const pawnDirection = currentPiece.team === TeamType.OUR ? 1 : -1;
-          if (isEnPassantMove) {
+          if (enPassantMove) {
             const pieces: Piece[] = [];
-            this.pieces.map((p) => {
-              if (samePosition(p.position, this.grabPosition)) {
+            this.pieces.forEach((p) => {
+              if (samePosition(p.position, currentPiece.position)) {
                 pieces.push({
                   ...p,
                   position: { x, y },
@@ -221,11 +230,11 @@ export default class ChessBoard extends Vue {
               }
             });
             this.pieces = pieces;
-            this.changeBoard();
+            store.dispatch("changeBoardState", pieces);
           } else if (validMove) {
             const pieces: Piece[] = [];
-            this.pieces.map((p) => {
-              if (samePosition(p.position, this.grabPosition)) {
+            this.pieces.forEach((p) => {
+              if (samePosition(p.position, currentPiece.position)) {
                 const promotionRow = p.team === TeamType.OUR ? 7 : 0;
                 if (y === promotionRow && p.type === PieceType.PAWN) {
                   this.modalRef.style.display = "block";
@@ -245,10 +254,11 @@ export default class ChessBoard extends Vue {
               }
             });
             this.pieces = pieces;
-            this.changeBoard();
+            store.dispatch("changeBoardState", pieces);
           }
         }
       }
+      this.changeBoard();
 
       this.activatePiece = null;
     }

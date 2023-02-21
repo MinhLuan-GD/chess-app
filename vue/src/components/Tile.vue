@@ -5,6 +5,7 @@
         'tile',
         !black ? 'while-tile' : 'black-tile',
         highlight && 'tile-highlight',
+        pieceImage && 'chess-piece-tile',
       ]
         .filter(Boolean)
         .join(' ')
@@ -62,8 +63,10 @@ export default class Tile extends Vue {
 .while-tile {
   background-color: #f1dbbf;
 }
-.tile-highlight::before {
+.tile-highlight:not(.chess-piece-tile):before {
   position: absolute;
+  pointer-events: none;
+  z-index: 2;
   content: "";
   width: 12px;
   height: 12px;
@@ -75,6 +78,19 @@ export default class Tile extends Vue {
     rgba(52, 73, 94, 1) 100%
   );
 }
+.tile-highlight.chess-piece-tile:before {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgb(241, 148, 138);
+  background: radial-gradient(
+    circle,
+    rgba(241, 148, 138, 1) 5%,
+    rgba(106, 63, 58, 1) 100%
+  );
+}
 </style>
-
-#ff0

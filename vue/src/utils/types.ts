@@ -20,4 +20,8 @@ interface Board {
   highlight: boolean;
 }
 
-export { Piece, Board, Position };
+interface State {
+  referee: { pieces: Piece[] };
+}
+
+export { Piece, Board, Position, State };

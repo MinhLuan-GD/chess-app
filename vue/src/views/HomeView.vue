@@ -1,11 +1,11 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-  </div>
+  <Referee />
 </template>
 
 <script lang="ts">
-import { Vue } from "vue-class-component";
+import Referee from "@/components/Referee.vue";
+import { Options, Vue } from "vue-class-component";
 
+@Options({ components: { Referee } })
 export default class HomeView extends Vue {}
 </script>
