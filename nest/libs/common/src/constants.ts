@@ -11,3 +11,8 @@ export enum Services {
   GAMES = 'GAMES_SERVICE',
   MOVES = 'MOVES_SERVICE',
 }
+
+export enum GameStatus {
+  IN_PROGRESS,
+  FINISHED,
+}
