@@ -23,7 +23,7 @@ export default class Referee {
     team: TeamType,
     boardState: Piece[]
   ): boolean {
-    const pawnDirection = team === TeamType.OUR ? 1 : -1;
+    const pawnDirection = team === TeamType.WHITE ? 1 : -1;
     if (pieceType === PieceType.PAWN) {
       if (
         (desiredPosition.x - initialPosition.x === -1 ||

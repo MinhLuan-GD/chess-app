@@ -54,7 +54,7 @@ export default class ChessBoard extends Vue {
   grabPosition!: Position;
 
   pieceType = PieceType;
-  teamPlay!: string;
+  teamPlay!: number;
 
   minX!: number;
   minY!: number;
@@ -66,14 +66,14 @@ export default class ChessBoard extends Vue {
   promotionPawn!: Piece;
 
   created(): void {
-    this.teamPlay = "w";
+    this.teamPlay = TeamType.WHITE;
     this.referee = new Referee();
     this.changeBoard();
   }
 
   changeBoard() {
     const board = [];
-    if (this.teamPlay === "w") {
+    if (this.teamPlay === TeamType.WHITE) {
       for (let j = 7; j >= 0; j--)
         for (let i = 0; i < 8; i++) {
           let currentPiece;
@@ -122,7 +122,7 @@ export default class ChessBoard extends Vue {
   }
 
   getIndexPiece(clientX: number, clientY: number): Position {
-    if (this.teamPlay === "w") {
+    if (this.teamPlay === TeamType.WHITE) {
       const x = Math.floor((clientX - this.chessBoardRef.offsetLeft) / 70);
       const y = 7 - Math.floor((clientY - this.chessBoardRef.offsetTop) / 70);
       return { x, y };
@@ -143,7 +143,7 @@ export default class ChessBoard extends Vue {
   }
 
   url(chess: string) {
-    const team = this.teamPlay === "b" ? "d" : "l";
+    const team = this.teamPlay === TeamType.BLACK ? "d" : "l";
     return require(`@/assets/Chess_${chess}${team}t60.png`);
   }
 
@@ -211,7 +211,7 @@ export default class ChessBoard extends Vue {
             currentPiece.team,
             this.pieces
           );
-          const pawnDirection = currentPiece.team === TeamType.OUR ? 1 : -1;
+          const pawnDirection = currentPiece.team === TeamType.WHITE ? 1 : -1;
           if (enPassantMove) {
             const pieces: Piece[] = [];
             this.pieces.forEach((p) => {
@@ -235,7 +235,7 @@ export default class ChessBoard extends Vue {
             const pieces: Piece[] = [];
             this.pieces.forEach((p) => {
               if (samePosition(p.position, currentPiece.position)) {
-                const promotionRow = p.team === TeamType.OUR ? 7 : 0;
+                const promotionRow = p.team === TeamType.WHITE ? 7 : 0;
                 if (y === promotionRow && p.type === PieceType.PAWN) {
                   this.modalRef.style.display = "block";
                   this.promotionPawn = { ...p, position: { x, y } };
@@ -269,7 +269,7 @@ export default class ChessBoard extends Vue {
     this.pieces.forEach((p) => {
       if (samePosition(p.position, this.promotionPawn.position)) {
         p.type = piece;
-        const team = this.teamPlay === "w" ? "l" : "d";
+        const team = this.teamPlay === TeamType.WHITE ? "l" : "d";
         switch (piece) {
           case PieceType.ROOK:
             p.img = `r${team}t.png`;

@@ -8,8 +8,8 @@ export const pawnMove = (
   team: TeamType,
   boardState: Piece[]
 ): boolean => {
-  const specialRow = team === TeamType.OUR ? 1 : 6;
-  const pawnDirection = team === TeamType.OUR ? 1 : -1;
+  const specialRow = team === TeamType.WHITE ? 1 : 6;
+  const pawnDirection = team === TeamType.WHITE ? 1 : -1;
 
   if (
     initialPosition.x === desiredPosition.x &&
@@ -56,8 +56,8 @@ export const getPossiblePawnMoves = (
 ): Position[] => {
   const possibleMoves: Position[] = [];
 
-  const specialRow = piece.team === TeamType.OUR ? 1 : 6;
-  const pawnDirection = piece.team === TeamType.OUR ? 1 : -1;
+  const specialRow = piece.team === TeamType.WHITE ? 1 : 6;
+  const pawnDirection = piece.team === TeamType.WHITE ? 1 : -1;
 
   const normalMove = {
     x: piece.position.x,

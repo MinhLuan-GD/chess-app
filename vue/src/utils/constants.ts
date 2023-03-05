@@ -13,97 +13,97 @@ const initialBoardState = () => {
       img: "rdt.png",
       position: { x: 0, y: 7 },
       type: PieceType.ROOK,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     },
     {
       img: "rdt.png",
       position: { x: 7, y: 7 },
       type: PieceType.ROOK,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     },
     {
       img: "rlt.png",
       position: { x: 0, y: 0 },
       type: PieceType.ROOK,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     },
     {
       img: "rlt.png",
       position: { x: 7, y: 0 },
       type: PieceType.ROOK,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     },
     {
       img: "ndt.png",
       position: { x: 1, y: 7 },
       type: PieceType.KNIGHT,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     },
     {
       img: "ndt.png",
       position: { x: 6, y: 7 },
       type: PieceType.KNIGHT,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     },
     {
       img: "nlt.png",
       position: { x: 1, y: 0 },
       type: PieceType.KNIGHT,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     },
     {
       img: "nlt.png",
       position: { x: 6, y: 0 },
       type: PieceType.KNIGHT,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     },
     {
       img: "bdt.png",
       position: { x: 2, y: 7 },
       type: PieceType.BISHOP,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     },
     {
       img: "bdt.png",
       position: { x: 5, y: 7 },
       type: PieceType.BISHOP,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     },
     {
       img: "blt.png",
       position: { x: 2, y: 0 },
       type: PieceType.BISHOP,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     },
     {
       img: "blt.png",
       position: { x: 5, y: 0 },
       type: PieceType.BISHOP,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     },
     {
       img: "qdt.png",
       position: { x: 3, y: 7 },
       type: PieceType.QUEEN,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     },
     {
       img: "kdt.png",
       position: { x: 4, y: 7 },
       type: PieceType.KING,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     },
     {
       img: "qlt.png",
       position: { x: 3, y: 0 },
       type: PieceType.QUEEN,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     },
     {
       img: "klt.png",
       position: { x: 4, y: 0 },
       type: PieceType.KING,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     },
   ];
   for (let i = 0; i < 8; i++) {
@@ -111,13 +111,13 @@ const initialBoardState = () => {
       img: "pdt.png",
       position: { x: i, y: 6 },
       type: PieceType.PAWN,
-      team: TeamType.OPPONENT,
+      team: TeamType.BLACK,
     });
     pieces.push({
       img: "plt.png",
       position: { x: i, y: 1 },
       type: PieceType.PAWN,
-      team: TeamType.OUR,
+      team: TeamType.WHITE,
     });
   }
 
@@ -125,8 +125,8 @@ const initialBoardState = () => {
 };
 
 enum TeamType {
-  OPPONENT,
-  OUR,
+  BLACK,
+  WHITE,
 }
 
 enum PieceType {
