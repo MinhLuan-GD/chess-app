@@ -89,7 +89,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
   async deleteOne(filterQuery: FilterQuery<TDocument>) {
     const document = await this.model.findOne(filterQuery);
     if (!document) throw new NotFoundException('Document not found.');
-    await document.remove();
+    document.deleteOne();
     return document;
   }
 
@@ -97,7 +97,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     filterQuery: FilterQuery<TDocument>,
     options?: QueryOptions<TDocument>,
   ) {
-    this.model.deleteMany(filterQuery, options, () => ({}));
+    this.model.deleteMany(filterQuery, options);
   }
 
   async startTransaction() {

@@ -27,7 +27,7 @@ export class Game {
   @Prop({ default: [] })
   moves: string[];
 
-  @Prop({ enum: GameStatus })
+  @Prop({ enum: GameStatus, type: Number })
   status: GameStatus;
 }
 
