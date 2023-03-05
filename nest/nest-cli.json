@@ -28,15 +28,6 @@
         "tsConfigPath": "apps/games/tsconfig.app.json"
       }
     },
-    "moves": {
-      "type": "application",
-      "root": "apps/moves",
-      "entryFile": "main",
-      "sourceRoot": "apps/moves/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/moves/tsconfig.app.json"
-      }
-    },
     "common": {
       "type": "library",
       "root": "libs/common",

@@ -24,6 +24,9 @@ export class Game {
   @Prop({ required: true })
   game_time_limit: number;
 
+  @Prop({ default: [] })
+  moves: string[];
+
   @Prop({ enum: GameStatus })
   status: GameStatus;
 }
