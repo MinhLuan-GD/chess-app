@@ -16,3 +16,8 @@ export enum GameStatus {
   IN_PROGRESS,
   FINISHED,
 }
+
+export enum Models {
+  GAME = 'GAME_MODEL',
+  PLAYER = 'PLAYER_MODEL',
+}

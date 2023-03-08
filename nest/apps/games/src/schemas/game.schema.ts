@@ -12,22 +12,22 @@ export class Game {
   @Prop()
   end_time?: string;
 
-  @Prop({ required: true })
-  player_one: Types.ObjectId;
+  @Prop({ required: true, type: Types.ObjectId })
+  player_one: Types.ObjectId | string;
+
+  @Prop({ required: true, type: Types.ObjectId })
+  player_two: Types.ObjectId | string;
 
   @Prop({ required: true })
-  player_two: Types.ObjectId;
+  move_time_limit: string;
 
   @Prop({ required: true })
-  move_time_limit: number;
-
-  @Prop({ required: true })
-  game_time_limit: number;
+  game_time_limit: string;
 
   @Prop({ default: [] })
   moves: string[];
 
-  @Prop({ enum: GameStatus, type: Number })
+  @Prop({ enum: GameStatus, type: Number, default: GameStatus.IN_PROGRESS })
   status: GameStatus;
 }
 
