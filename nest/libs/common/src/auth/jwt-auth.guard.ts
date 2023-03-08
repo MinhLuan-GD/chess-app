@@ -5,29 +5,25 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, Observable, tap } from 'rxjs';
+import { Services } from '../constants';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(
-    @Inject('AUTH_SERVICE') private authClient: ClientProxy,
-    private reflector: Reflector,
-  ) {}
+  constructor(@Inject(Services.AUTH) private authClient: ClientProxy) {}
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const authentication = this.getAuthentication(context);
-    const role = this.reflector.get<string>('role', context.getHandler());
     return this.authClient
-      .send('validate-user', {
+      .send('validate-player', {
         Authentication: authentication,
       })
       .pipe(
         tap((res) => {
-          this.addUser(res, context);
+          this.addPlayer(res, context);
         }),
         catchError((err) => {
           console.log(err);
@@ -54,11 +50,12 @@ export class JwtAuthGuard implements CanActivate {
     return authentication;
   }
 
-  private addUser(user: any, context: ExecutionContext) {
+  private addPlayer(player: any, context: ExecutionContext) {
+    console.log('player', player);
     if (context.getType() === 'rpc') {
-      context.switchToRpc().getData().user = user;
+      context.switchToRpc().getData().player = player;
     } else if (context.getType() === 'http') {
-      context.switchToHttp().getRequest().user = user;
+      context.switchToHttp().getRequest().player = player;
     }
   }
 }

@@ -6,6 +6,8 @@ import { PlayersController } from './players.controller';
 import { PlayersService } from './players.service';
 import { PlayerSchema } from './schemas/player.schema';
 import * as Joi from 'joi';
+import { Models, Services } from '@app/common/constants';
+import { PlayersRepository } from './players.repository';
 
 @Module({
   imports: [
@@ -22,10 +24,16 @@ import * as Joi from 'joi';
       }),
     }),
     DatabaseModule,
-    MongooseModule.forFeature([{ name: 'Player', schema: PlayerSchema }]),
+    MongooseModule.forFeature([{ name: Models.PLAYER, schema: PlayerSchema }]),
     RmqModule,
   ],
   controllers: [PlayersController],
-  providers: [PlayersService],
+  providers: [
+    {
+      provide: Services.PLAYERS,
+      useClass: PlayersService,
+    },
+    PlayersRepository,
+  ],
 })
 export class PlayersModule {}

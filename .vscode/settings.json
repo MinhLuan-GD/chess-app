@@ -9,7 +9,7 @@
     "**/Thumbs.db": true,
     "**/dist/": true,
     "**/node_modules/": true,
-    "**/tsconfig*.json": true,
+    // "**/tsconfig*.json": true,
     "**/yarn.lock": true,
     "**/.eslintrc.js": true,
     "**/.prettierrc": true

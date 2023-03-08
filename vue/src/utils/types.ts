@@ -24,4 +24,16 @@ interface State {
   referee: { pieces: Piece[] };
 }
 
-export { Piece, Board, Position, State };
+interface Game {
+  _id: string;
+  start_time: string;
+  end_time?: string;
+  player_one: string;
+  player_two: string;
+  move_time_limit: string;
+  game_time_limit: string;
+  moves: string[];
+  status: string;
+}
+
+export { Piece, Board, Position, State, Game };

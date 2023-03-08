@@ -41,7 +41,10 @@ import { ref } from "vue";
 import { Options, Vue } from "vue-class-component";
 import Referee from "@/referee/Referee";
 import Tile from "./Tile.vue";
-import store from "@/store";
+import { io, Socket } from "socket.io-client";
+import { Chess } from "chess.js";
+import { getGame } from "@/api/game";
+import { initialBoardState } from "@/utils/constants";
 
 @Options({ components: { Tile } })
 export default class ChessBoard extends Vue {
@@ -61,14 +64,25 @@ export default class ChessBoard extends Vue {
   maxX!: number;
   maxY!: number;
 
-  pieces = store.state.referee.pieces;
+  pieces!: Piece[];
 
   promotionPawn!: Piece;
 
+  socket!: Socket;
+  gameClient!: Chess;
+
   created(): void {
+    this.socket = io("http://localhost:3002");
+    getGame("6408901f4bdc998f35f8e4c2").then(({ data }) => {
+      this.gameClient = new Chess();
+      data.moves.forEach((move: string) => {
+        this.gameClient.move(move);
+      });
+      this.pieces = initialBoardState(this.gameClient.board());
+      this.changeBoard();
+    });
     this.teamPlay = TeamType.WHITE;
     this.referee = new Referee();
-    this.changeBoard();
   }
 
   changeBoard() {
@@ -230,7 +244,6 @@ export default class ChessBoard extends Vue {
               }
             });
             this.pieces = pieces;
-            store.dispatch("changeBoardState", pieces);
           } else if (validMove) {
             const pieces: Piece[] = [];
             this.pieces.forEach((p) => {
@@ -254,7 +267,6 @@ export default class ChessBoard extends Vue {
               }
             });
             this.pieces = pieces;
-            store.dispatch("changeBoardState", pieces);
           }
         }
       }
@@ -301,6 +313,10 @@ export default class ChessBoard extends Vue {
       p.possibleMoves = [];
     });
     this.changeBoard();
+  }
+
+  beforeUnmount(): void {
+    if (this.socket) this.socket.disconnect();
   }
 }
 </script>

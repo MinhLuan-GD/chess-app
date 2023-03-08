@@ -1,7 +1,7 @@
 import { CreateGameDto } from './dtos/create-game.dto';
 import { Game } from './schemas/game.schema';
 
-export interface IGameService {
+export interface IGamesService {
   getGame(id: string): Promise<Game>;
   getGames(): Promise<Game[]>;
   createGame(game: CreateGameDto): Promise<Game>;

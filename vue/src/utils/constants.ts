@@ -7,7 +7,57 @@ const samePosition = (a: Position, b: Position) => {
   return a.x === b.x && a.y === b.y;
 };
 
-const initialBoardState = () => {
+const initialBoardState = (gameBoard: any[][]) => {
+  const boardState: Piece[] = [];
+  for (let i = 0; i < 8; i++)
+    for (let j = 0; j < 8; j++) {
+      const piece = gameBoard[i][j];
+      if (piece) {
+        let type, img, team, imgTeam;
+        if (piece.color === "w") {
+          team = TeamType.WHITE;
+          imgTeam = "l";
+        } else {
+          team = TeamType.BLACK;
+          imgTeam = "d";
+        }
+        switch (piece.type) {
+          case "p":
+            type = PieceType.PAWN;
+            img = `p${imgTeam}t.png`;
+            break;
+          case "r":
+            type = PieceType.ROOK;
+            img = `r${imgTeam}t.png`;
+            break;
+          case "n":
+            type = PieceType.KNIGHT;
+            img = `n${imgTeam}t.png`;
+            break;
+          case "b":
+            type = PieceType.BISHOP;
+            img = `b${imgTeam}t.png`;
+            break;
+          case "q":
+            type = PieceType.QUEEN;
+            img = `q${imgTeam}t.png`;
+            break;
+          default:
+            type = PieceType.KING;
+            img = `k${imgTeam}t.png`;
+        }
+        boardState.push({
+          type,
+          img,
+          team,
+          position: { x: j, y: Math.abs(i - 7) },
+        });
+      }
+    }
+  return boardState;
+};
+
+export const initialBoardStateOld = () => {
   const pieces: Piece[] = [
     {
       img: "rdt.png",

@@ -15,10 +15,10 @@ export class Player {
   _id: Types.ObjectId;
 
   @Prop({ required: true, unique: true })
-  email?: string;
+  email: string;
 
   @Prop({ required: true })
-  password?: string;
+  password: string;
 
   @Prop({ required: true })
   nickname: string;
