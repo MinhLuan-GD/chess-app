@@ -30,13 +30,14 @@
       :piece-image="item.image"
       :highlight="item.highlight"
       :key="item.key"
+      :team="`team${item.team}`"
     />
   </div>
 </template>
 
 <script lang="ts">
 import { Piece, Board, Position } from "@/utils/types";
-import { PieceType, TeamType, samePosition } from "@/utils/constants";
+import { PieceType, TeamType, samePosition, toAxis } from "@/utils/constants";
 import { ref } from "vue";
 import { Options, Vue } from "vue-class-component";
 import Referee from "@/referee/Referee";
@@ -58,6 +59,7 @@ export default class ChessBoard extends Vue {
 
   pieceType = PieceType;
   teamPlay!: number;
+  gameId = "64097a93aafc82e3dac0b6dd";
 
   minX!: number;
   minY!: number;
@@ -73,7 +75,7 @@ export default class ChessBoard extends Vue {
 
   created(): void {
     this.socket = io("http://localhost:3002");
-    getGame("640935cc0fa07b9164381289").then(({ data }) => {
+    getGame(this.gameId).then(({ data }) => {
       this.gameClient = new Chess();
       data.moves.forEach((move: string) => {
         this.gameClient.move(move);
@@ -96,17 +98,19 @@ export default class ChessBoard extends Vue {
               samePosition(p.position, this.grabPosition)
             );
           }
+          const piece = this.pieces.find(
+            (p) => p.position.x === i && p.position.y === j
+          );
           board.push({
             key: `${i}${j}`,
             black: (i + j) % 2 == 0,
-            image: this.pieces.find(
-              (p) => p.position.x === i && p.position.y === j
-            )?.img,
+            image: piece?.img,
             highlight: currentPiece?.possibleMoves
               ? currentPiece.possibleMoves.some((p) =>
                   samePosition(p, { x: i, y: j })
                 )
               : false,
+            team: piece?.team,
           });
         }
     } else {
@@ -118,17 +122,19 @@ export default class ChessBoard extends Vue {
               samePosition(p.position, this.grabPosition)
             );
           }
+          const piece = this.pieces.find(
+            (p) => p.position.x === i && p.position.y === j
+          );
           board.push({
             key: `${i}${j}`,
             black: (i + j) % 2 == 0,
-            image: this.pieces.find(
-              (p) => p.position.x === i && p.position.y === j
-            )?.img,
+            image: piece?.img,
             highlight: currentPiece?.possibleMoves
               ? currentPiece.possibleMoves.some((p) =>
                   samePosition(p, { x: i, y: j })
                 )
               : false,
+            team: piece?.team,
           });
         }
     }
@@ -163,7 +169,10 @@ export default class ChessBoard extends Vue {
 
   grabPiece(e: MouseEvent) {
     const element = e.target as HTMLElement;
-    if (element.classList.contains("chess-piece")) {
+    if (
+      element.classList.contains("chess-piece") &&
+      element.classList.contains(`team${this.teamPlay}`)
+    ) {
       document.addEventListener("mousemove", this.movePiece);
       this.grabPosition = this.getIndexPiece(e.clientX, e.clientY);
       element.style.position = "absolute";
@@ -267,6 +276,17 @@ export default class ChessBoard extends Vue {
               }
             });
             this.pieces = pieces;
+            const from = toAxis(this.grabPosition);
+            const to = toAxis({ x, y });
+            try {
+              this.gameClient.move({ from, to });
+              this.socket.emit("move", {
+                game: this.gameId,
+                move: this.gameClient.history().pop(),
+              });
+            } catch (error) {
+              console.log("valid move but not allowed");
+            }
           }
         }
       }

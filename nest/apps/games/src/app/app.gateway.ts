@@ -6,8 +6,11 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
+import { GamesRepository } from '../games.repository';
+import { Cache } from 'cache-manager';
+import { Position } from 'kokopu';
 
 @WebSocketGateway({
   cors: {
@@ -24,20 +27,81 @@ export class AppGateway
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('AppGateway');
 
-  @SubscribeMessage('msgToServer')
-  handleMessage(_client: Socket, payload: string): void {
-    this.server.emit('msgToClient', payload);
+  constructor(
+    private readonly gamesRepository: GamesRepository,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
+
+  @SubscribeMessage('move')
+  async handleMessage(_client: Socket, payload: any) {
+    const fen = await this.getFenGame(payload.game);
+    if (fen) {
+      const position = new Position(fen);
+      position.play(payload.move);
+      this.cacheManager.set(
+        `games:${payload.game}`,
+        position.fen(),
+        Date.parse('1d'),
+      );
+      this.server.emit(
+        `game:${payload.game}:turn:${position.turn()}`,
+        payload.move,
+      );
+      this.gamesRepository.updateOne(
+        { _id: payload.game },
+        {
+          $set: {
+            fen: position.fen(),
+          },
+          $push: {
+            moves: payload.move,
+          },
+        },
+      );
+    } else {
+      const game = await this.gamesRepository.findOne({ _id: payload.game });
+      if (game) {
+        const position = new Position(game.fen);
+        position.play(payload.move);
+        this.cacheManager.set(
+          `games:${payload.game}`,
+          position.fen(),
+          Date.parse('1d'),
+        );
+        this.server.emit(
+          `game:${payload.game}:turn:${position.turn()}`,
+          payload.move,
+        );
+        this.gamesRepository.updateOne(
+          { _id: payload.game },
+          {
+            $set: {
+              fen: position.fen(),
+            },
+            $push: {
+              moves: payload.move,
+            },
+          },
+        );
+      }
+    }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   afterInit(_server: Server) {
     this.logger.log('Init');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleConnection(client: Socket, ..._args: any[]) {
     this.logger.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
+  }
+
+  getFenGame(id: string): Promise<string | undefined> {
+    return this.cacheManager.get(`games:${id}`);
   }
 }

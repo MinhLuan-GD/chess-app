@@ -3,6 +3,10 @@ import { Piece, Position } from "./types";
 const VERTICAL_AXIS = [1, 2, 3, 4, 5, 6, 7, 8];
 const HORIZONTAL_AXIS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
+const toAxis = (position: Position) => {
+  return `${HORIZONTAL_AXIS[position.x]}${VERTICAL_AXIS[position.y]}`;
+};
+
 const samePosition = (a: Position, b: Position) => {
   return a.x === b.x && a.y === b.y;
 };
@@ -194,4 +198,5 @@ export {
   PieceType,
   initialBoardState,
   samePosition,
+  toAxis,
 };

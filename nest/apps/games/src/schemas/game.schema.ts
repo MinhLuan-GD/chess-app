@@ -27,6 +27,9 @@ export class Game {
   @Prop({ default: [] })
   moves: string[];
 
+  @Prop({ default: '' })
+  fen: string;
+
   @Prop({ enum: GameStatus, type: Number, default: GameStatus.IN_PROGRESS })
   status: GameStatus;
 }

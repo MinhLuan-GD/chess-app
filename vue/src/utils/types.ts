@@ -18,6 +18,7 @@ interface Board {
   black: boolean;
   image?: string;
   highlight: boolean;
+  team?: TeamType;
 }
 
 interface State {

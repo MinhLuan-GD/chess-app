@@ -11,7 +11,11 @@
         .join(' ')
     "
   >
-    <div v-if="pieceImage" class="chess-piece" :style="url(pieceImage)"></div>
+    <div
+      v-if="pieceImage"
+      :class="`chess-piece ${team}`"
+      :style="url(pieceImage)"
+    ></div>
   </div>
 </template>
 
@@ -23,12 +27,14 @@ import { Options, Vue } from "vue-class-component";
     black: Boolean,
     pieceImage: String,
     highlight: Boolean,
+    team: String,
   },
 })
 export default class Tile extends Vue {
   black!: boolean;
   pieceImage?: string;
   highlight!: boolean;
+  team!: string;
 
   url(name: string) {
     return `background-image: url(/img/pieces/${name});`;

@@ -21,8 +21,11 @@ export class GamesService implements IGamesService {
   }
 
   async createGame(createGameDto: CreateGameDto): Promise<Game> {
-    const game = await this.gamesRepository.create(createGameDto);
     const gameClient = new Position();
+    const game = await this.gamesRepository.create({
+      ...createGameDto,
+      fen: gameClient.fen(),
+    });
     this.cacheManager.set(
       `games:${game._id.toString()}`,
       gameClient.fen(),
