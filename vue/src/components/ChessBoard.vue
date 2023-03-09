@@ -73,7 +73,7 @@ export default class ChessBoard extends Vue {
 
   created(): void {
     this.socket = io("http://localhost:3002");
-    getGame("6408901f4bdc998f35f8e4c2").then(({ data }) => {
+    getGame("640935cc0fa07b9164381289").then(({ data }) => {
       this.gameClient = new Chess();
       data.moves.forEach((move: string) => {
         this.gameClient.move(move);
