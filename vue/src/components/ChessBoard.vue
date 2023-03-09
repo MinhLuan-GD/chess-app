@@ -45,6 +45,7 @@ import Tile from "./Tile.vue";
 import { io, Socket } from "socket.io-client";
 import { Chess } from "chess.js";
 import { getGame } from "@/api/game";
+import { login } from "@/api/player";
 import { initialBoardState } from "@/utils/constants";
 
 @Options({ components: { Tile } })
@@ -58,8 +59,10 @@ export default class ChessBoard extends Vue {
   grabPosition!: Position;
 
   pieceType = PieceType;
-  teamPlay!: number;
-  gameId = "64097a93aafc82e3dac0b6dd";
+  teamPlay!: string;
+
+  gameId = "6409ecd56f3d68dec11de477";
+  playerId!: string;
 
   minX!: number;
   minY!: number;
@@ -68,23 +71,50 @@ export default class ChessBoard extends Vue {
 
   pieces!: Piece[];
 
-  promotionPawn!: Piece;
+  turnOn = false;
+
+  promotionPawn!: any;
 
   socket!: Socket;
   gameClient!: Chess;
 
   created(): void {
+    const email = prompt("Enter email") || "email";
+    const password = prompt("Enter password") || "password";
     this.socket = io("http://localhost:3002");
-    getGame(this.gameId).then(({ data }) => {
-      this.gameClient = new Chess();
-      data.moves.forEach((move: string) => {
-        this.gameClient.move(move);
-      });
-      this.pieces = initialBoardState(this.gameClient.board());
-      this.changeBoard();
-    });
-    this.teamPlay = TeamType.WHITE;
     this.referee = new Referee();
+    login(email, password).then(({ data }) => {
+      this.playerId = data._id;
+      this.initGame();
+    });
+  }
+
+  async initGame() {
+    const { data } = await getGame(this.gameId);
+    this.gameClient = new Chess();
+    data.moves.forEach((move: string) => {
+      this.gameClient.move(move);
+    });
+    console.log(this.gameClient.pgn());
+    this.pieces = initialBoardState(this.gameClient.board());
+    if (data.whitePlayerId === this.playerId) {
+      this.teamPlay = TeamType.WHITE;
+    } else {
+      this.teamPlay = TeamType.BLACK;
+    }
+    if (this.teamPlay === this.gameClient.turn()) {
+      this.turnOn = true;
+    }
+    this.socket.on(
+      `game:${this.gameId}:turn:${this.teamPlay}`,
+      (move: string) => {
+        this.gameClient.move(move);
+        this.pieces = initialBoardState(this.gameClient.board());
+        this.changeBoard();
+        this.turnOn = true;
+      }
+    );
+    this.changeBoard();
   }
 
   changeBoard() {
@@ -170,6 +200,7 @@ export default class ChessBoard extends Vue {
   grabPiece(e: MouseEvent) {
     const element = e.target as HTMLElement;
     if (
+      this.turnOn &&
       element.classList.contains("chess-piece") &&
       element.classList.contains(`team${this.teamPlay}`)
     ) {
@@ -219,78 +250,29 @@ export default class ChessBoard extends Vue {
         );
 
         if (currentPiece) {
-          const validMove = this.referee.isValidMove(
-            this.grabPosition,
-            { x, y },
-            currentPiece.type,
-            currentPiece.team,
-            this.pieces
-          );
-
-          const enPassantMove = this.referee.isEnPassantMove(
-            this.grabPosition,
-            { x, y },
-            currentPiece.type,
-            currentPiece.team,
-            this.pieces
-          );
-          const pawnDirection = currentPiece.team === TeamType.WHITE ? 1 : -1;
-          if (enPassantMove) {
-            const pieces: Piece[] = [];
-            this.pieces.forEach((p) => {
-              if (samePosition(p.position, currentPiece.position)) {
-                pieces.push({
-                  ...p,
-                  position: { x, y },
-                  enPassant: false,
-                });
-              } else if (
-                !(p.position.x === x && p.position.y === y - pawnDirection)
-              ) {
-                if (p.type === PieceType.PAWN)
-                  pieces.push({ ...p, enPassant: false });
-                else pieces.push(p);
-              }
-            });
-            this.pieces = pieces;
-          } else if (validMove) {
-            const pieces: Piece[] = [];
-            this.pieces.forEach((p) => {
-              if (samePosition(p.position, currentPiece.position)) {
-                const promotionRow = p.team === TeamType.WHITE ? 7 : 0;
-                if (y === promotionRow && p.type === PieceType.PAWN) {
-                  this.modalRef.style.display = "block";
-                  this.promotionPawn = { ...p, position: { x, y } };
-                }
-                pieces.push({
-                  ...p,
-                  position: { x, y },
-                  enPassant:
-                    Math.abs(this.grabPosition.y - y) === 2 &&
-                    p.type === PieceType.PAWN,
-                });
-              } else if (!samePosition(p.position, { x, y })) {
-                if (p.type === PieceType.PAWN)
-                  pieces.push({ ...p, enPassant: false });
-                else pieces.push(p);
-              }
-            });
-            this.pieces = pieces;
-            const from = toAxis(this.grabPosition);
-            const to = toAxis({ x, y });
+          const from = toAxis(this.grabPosition);
+          const to = toAxis({ x, y });
+          const promotionRow = currentPiece.team === TeamType.WHITE ? 7 : 0;
+          if (y === promotionRow && currentPiece.type === PieceType.PAWN) {
+            this.modalRef.style.display = "block";
+            this.promotionPawn = { from, to };
+          } else {
             try {
-              this.gameClient.move({ from, to });
-              this.socket.emit("move", {
-                game: this.gameId,
-                move: this.gameClient.history().pop(),
-              });
+              if (this.gameClient.move({ from, to })) {
+                this.turnOn = false;
+                this.pieces = initialBoardState(this.gameClient.board());
+                this.changeBoard();
+                this.socket.emit("move", {
+                  game: this.gameId,
+                  move: this.gameClient.history().pop(),
+                });
+              }
             } catch (error) {
-              console.log("valid move but not allowed");
+              console.log("valid move");
             }
           }
         }
       }
-      this.changeBoard();
 
       this.activatePiece = null;
     }
@@ -298,27 +280,19 @@ export default class ChessBoard extends Vue {
 
   promotePawn(piece: PieceType) {
     this.modalRef.style.display = "none";
-    this.pieces.forEach((p) => {
-      if (samePosition(p.position, this.promotionPawn.position)) {
-        p.type = piece;
-        const team = this.teamPlay === TeamType.WHITE ? "l" : "d";
-        switch (piece) {
-          case PieceType.ROOK:
-            p.img = `r${team}t.png`;
-            break;
-          case PieceType.BISHOP:
-            p.img = `b${team}t.png`;
-            break;
-          case PieceType.KNIGHT:
-            p.img = `n${team}t.png`;
-            break;
-          case PieceType.QUEEN:
-            p.img = `q${team}t.png`;
-            break;
-        }
+    try {
+      if (this.gameClient.move({ ...this.promotionPawn, promotion: piece })) {
+        this.turnOn = false;
+        this.pieces = initialBoardState(this.gameClient.board());
+        this.changeBoard();
+        this.socket.emit("move", {
+          game: this.gameId,
+          move: this.gameClient.history().pop(),
+        });
       }
-    });
-    this.changeBoard();
+    } catch (error) {
+      console.log("valid move");
+    }
   }
 
   updateValidMoves() {

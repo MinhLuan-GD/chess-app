@@ -179,17 +179,17 @@ export const initialBoardStateOld = () => {
 };
 
 enum TeamType {
-  BLACK,
-  WHITE,
+  BLACK = "b",
+  WHITE = "w",
 }
 
 enum PieceType {
-  PAWN,
-  BISHOP,
-  KNIGHT,
-  ROOK,
-  QUEEN,
-  KING,
+  PAWN = "p",
+  BISHOP = "b",
+  KNIGHT = "n",
+  ROOK = "r",
+  QUEEN = "q",
+  KING = "k",
 }
 export {
   VERTICAL_AXIS,

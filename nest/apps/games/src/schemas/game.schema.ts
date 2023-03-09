@@ -13,10 +13,10 @@ export class Game {
   end_time?: string;
 
   @Prop({ required: true, type: Types.ObjectId })
-  player_one: Types.ObjectId | string;
+  whitePlayerId: Types.ObjectId | string;
 
   @Prop({ required: true, type: Types.ObjectId })
-  player_two: Types.ObjectId | string;
+  blackPlayerId: Types.ObjectId | string;
 
   @Prop({ required: true })
   move_time_limit: string;

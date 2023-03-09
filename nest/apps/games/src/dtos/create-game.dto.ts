@@ -3,11 +3,11 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class CreateGameDto {
   @IsString()
   @IsNotEmpty()
-  player_one: string;
+  whitePlayerId: string;
 
   @IsString()
   @IsNotEmpty()
-  player_two: string;
+  blackPlayerId: string;
 
   @IsString()
   @IsNotEmpty()

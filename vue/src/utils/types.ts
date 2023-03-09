@@ -21,20 +21,28 @@ interface Board {
   team?: TeamType;
 }
 
+interface Player {
+  _id: string;
+  email: string;
+  nickname: string;
+  rating: number;
+}
+
 interface State {
   referee: { pieces: Piece[] };
+  player: Player | null;
 }
 
 interface Game {
   _id: string;
   start_time: string;
   end_time?: string;
-  player_one: string;
-  player_two: string;
+  whitePlayerId: string;
+  blackPlayerId: string;
   move_time_limit: string;
   game_time_limit: string;
   moves: string[];
   status: string;
 }
 
-export { Piece, Board, Position, State, Game };
+export { Piece, Board, Position, State, Game, Player };
