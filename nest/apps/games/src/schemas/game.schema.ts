@@ -1,6 +1,7 @@
 import { GameStatus } from '@app/common/constants';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+import { Message, MessageSchema } from './message.schema';
 
 @Schema({ collection: 'games', versionKey: false })
 export class Game {
@@ -29,6 +30,9 @@ export class Game {
 
   @Prop({ default: '' })
   fen: string;
+
+  @Prop({ default: [], type: [MessageSchema] })
+  messages: Message[];
 
   @Prop({ enum: GameStatus, type: Number, default: GameStatus.IN_PROGRESS })
   status: GameStatus;

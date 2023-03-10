@@ -33,7 +33,7 @@ export class AppGateway
   ) {}
 
   @SubscribeMessage('move')
-  async handleMessage(_client: Socket, payload: any) {
+  async move(_client: Socket, payload: any) {
     const fen = await this.getFenGame(payload.game);
     if (fen) {
       const position = new Position(fen);
@@ -85,6 +85,19 @@ export class AppGateway
         );
       }
     }
+  }
+
+  @SubscribeMessage('message')
+  async message(_client: Socket, payload: any) {
+    this.server.emit(`game:${payload.game}:message`, payload.message);
+    this.gamesRepository.updateOne(
+      { _id: payload.game },
+      {
+        $push: {
+          messages: payload.message,
+        },
+      },
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

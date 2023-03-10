@@ -63,6 +63,8 @@ export default class ChessBoard extends Vue {
 
   gameId = "6409ecd56f3d68dec11de477";
   playerId!: string;
+  isCheck = false;
+  isCheckMate = false;
 
   minX!: number;
   minY!: number;
@@ -95,7 +97,8 @@ export default class ChessBoard extends Vue {
     data.moves.forEach((move: string) => {
       this.gameClient.move(move);
     });
-    console.log(this.gameClient.pgn());
+    this.isCheck = this.gameClient.isCheck();
+    this.isCheckMate = this.gameClient.isCheckmate();
     this.pieces = initialBoardState(this.gameClient.board());
     if (data.whitePlayerId === this.playerId) {
       this.teamPlay = TeamType.WHITE;
@@ -109,6 +112,8 @@ export default class ChessBoard extends Vue {
       `game:${this.gameId}:turn:${this.teamPlay}`,
       (move: string) => {
         this.gameClient.move(move);
+        this.isCheck = this.gameClient.isCheck();
+        this.isCheckMate = this.gameClient.isCheckmate();
         this.pieces = initialBoardState(this.gameClient.board());
         this.changeBoard();
         this.turnOn = true;
@@ -296,10 +301,12 @@ export default class ChessBoard extends Vue {
   }
 
   updateValidMoves() {
-    this.pieces.forEach((p) => {
-      p.possibleMoves = this.referee.getValidMoves(p, this.pieces);
-    });
-    this.changeBoard();
+    if (!this.isCheck) {
+      this.pieces.forEach((p) => {
+        p.possibleMoves = this.referee.getValidMoves(p, this.pieces);
+      });
+      this.changeBoard();
+    }
   }
 
   deleteValidMoves() {
