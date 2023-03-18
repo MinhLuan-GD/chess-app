@@ -26,10 +26,9 @@ export class AuthService {
     };
 
     const expires = new Date();
-
-    const expiration = this.configService.get('JWT_EXPIRATION') ?? '7d';
-
-    expires.setDate(expires.getDate() + 7);
+    expires.setSeconds(
+      expires.getSeconds() + this.configService.get('JWT_EXPIRATION'),
+    );
 
     const token = this.jwtService.sign(tokenPayload);
 

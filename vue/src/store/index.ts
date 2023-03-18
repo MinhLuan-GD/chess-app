@@ -1,26 +1,35 @@
-import { Piece, Player, State } from "@/utils/types";
+import { currentPlayer } from "@/api/player";
+import { Player, State } from "@/utils/types";
 import { createStore } from "vuex";
 
 export default createStore<State>({
   state: {
-    referee: { pieces: [] },
     player: null,
+    gameId: null,
   },
   getters: {},
   mutations: {
-    CHANGE_BOARD_STATE(state, pieces: Piece[]) {
-      state.referee.pieces = pieces;
-    },
-    CHANGE_PLAYER(state, player: Player) {
+    SET_PLAYER(state, player: Player) {
       state.player = player;
+    },
+    SET_GAME_ID(state, gameId: string) {
+      state.gameId = gameId;
     },
   },
   actions: {
-    changeBoardState({ commit }, pieces: string) {
-      commit("CHANGE_BOARD_STATE", pieces);
+    async getPlayer({ commit }) {
+      const response = await currentPlayer();
+      if (response.status !== 200) {
+        commit("SET_PLAYER", null);
+        return;
+      }
+      commit("SET_PLAYER", response.data);
     },
-    changePlayer({ commit }, player: Player) {
-      commit("CHANGE_PLAYER", player);
+    setPlayer({ commit }, player: Player) {
+      commit("SET_PLAYER", player);
+    },
+    setGameId({ commit }, gameId: string) {
+      commit("SET_GAME_ID", gameId);
     },
   },
   modules: {},

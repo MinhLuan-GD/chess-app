@@ -51,7 +51,6 @@ export class JwtAuthGuard implements CanActivate {
   }
 
   private addPlayer(player: any, context: ExecutionContext) {
-    console.log('player', player);
     if (context.getType() === 'rpc') {
       context.switchToRpc().getData().player = player;
     } else if (context.getType() === 'http') {

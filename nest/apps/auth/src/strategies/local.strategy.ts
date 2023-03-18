@@ -21,7 +21,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       }),
     );
     if (player) return player;
-    console.log('UnauthorizedException2-validate');
     throw new UnauthorizedException();
   }
 }

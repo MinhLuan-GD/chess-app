@@ -29,8 +29,8 @@ interface Player {
 }
 
 interface State {
-  referee: { pieces: Piece[] };
   player: Player | null;
+  gameId: string | null;
 }
 
 interface Game {

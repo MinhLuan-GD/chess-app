@@ -11,7 +11,7 @@ services:
     environment:
       PORT: 3000
       RABBIT_MQ_URI: amqp://rabbitmq:5672
-      JWT_EXPIRATION: 7d
+      JWT_EXPIRATION: 604800 # 7 days
       JWT_SECRET: secret123
     depends_on:
       - mongo-primary

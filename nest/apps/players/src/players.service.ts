@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { compareSync, hashSync } from 'bcrypt';
 import { CreatePlayerDto } from './dtos/create-player.dto';
 import { IPlayersService } from './players.interface';
@@ -13,7 +13,7 @@ export class PlayersService implements IPlayersService {
     const findPlayer = await this.playersRepository.findOne({
       email: createPlayerDto.email,
     });
-    if (findPlayer) throw new Error('Player already exists');
+    if (findPlayer) throw new BadRequestException('Player already exists');
     const password = hashSync(createPlayerDto.password, 10);
     return this.playersRepository.create({ ...createPlayerDto, password });
   }

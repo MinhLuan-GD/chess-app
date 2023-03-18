@@ -16,6 +16,7 @@ export class AuthController {
     @CurrentPlayer() player: any,
     @Res({ passthrough: true }) response: Response,
   ) {
+    console.log(player);
     await this.authService.login(player, response);
     response.send(player);
   }

@@ -181,6 +181,7 @@ export const initialBoardStateOld = () => {
 enum TeamType {
   BLACK = "b",
   WHITE = "w",
+  SPECTATOR = "s",
 }
 
 enum PieceType {
@@ -191,6 +192,16 @@ enum PieceType {
   QUEEN = "q",
   KING = "k",
 }
+
+enum Routes {
+  HOME = "/",
+  LOGIN = "/login",
+  REGISTER = "/register",
+  GAME = "/game",
+  GAME_OPTION = "/game-option",
+  PROFILE = "/profile",
+}
+
 export {
   VERTICAL_AXIS,
   HORIZONTAL_AXIS,
@@ -199,4 +210,5 @@ export {
   initialBoardState,
   samePosition,
   toAxis,
+  Routes,
 };

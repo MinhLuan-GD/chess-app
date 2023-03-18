@@ -100,6 +100,34 @@ export class AppGateway
     );
   }
 
+  @SubscribeMessage('join')
+  async handleJoin(_client: Socket, payload: any) {
+    const userWatchedGames = (await this.cacheManager.get(
+      'user:watched',
+    )) as string;
+    if (userWatchedGames) {
+      console.log(userWatchedGames);
+      const gameClient = new Position();
+      const game = await this.gamesRepository.create({
+        whitePlayerId: payload.userId,
+        blackPlayerId: userWatchedGames,
+        game_time_limit: '2m',
+        move_time_limit: '30m',
+        fen: gameClient.fen(),
+      });
+      this.cacheManager.set(
+        `games:${game._id.toString()}`,
+        gameClient.fen(),
+        Date.parse('1d'),
+      );
+      this.server.emit(`user:${payload.userId}:watched`, game._id);
+      this.server.emit(`user:${userWatchedGames}:watched`, game._id);
+    } else {
+      console.log(userWatchedGames);
+      this.cacheManager.set('user:watched', payload.userId);
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   afterInit(_server: Server) {
     this.logger.log('Init');

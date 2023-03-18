@@ -1,7 +1,7 @@
-import Store from "@/store";
+import { State } from "./utils/types";
 
 declare module "@vue/runtime-core" {
   interface ComponentCustomProperties {
-    $store: Store;
+    $store: { state: State };
   }
 }

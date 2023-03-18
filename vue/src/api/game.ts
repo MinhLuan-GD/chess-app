@@ -1,12 +1,8 @@
 import { Game } from "@/utils/types";
 import { api } from ".";
 
-const getFenGame = (id: string) => {
-  return api.get(`games/${id}/fen`);
-};
+const getFenGame = (id: string) => api.get<string>(`games/${id}/fen`);
 
-const getGame = (id: string) => {
-  return api.get<Game>(`/games/${id}`);
-};
+const getGame = (id: string) => api.get<Game>(`/games/${id}`);
 
 export { getFenGame, getGame };

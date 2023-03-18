@@ -45,8 +45,8 @@ import Tile from "./Tile.vue";
 import { io, Socket } from "socket.io-client";
 import { Chess } from "chess.js";
 import { getGame } from "@/api/game";
-import { login } from "@/api/player";
 import { initialBoardState } from "@/utils/constants";
+import store from "@/store";
 
 @Options({ components: { Tile } })
 export default class ChessBoard extends Vue {
@@ -61,8 +61,7 @@ export default class ChessBoard extends Vue {
   pieceType = PieceType;
   teamPlay!: string;
 
-  gameId = "6409ecd56f3d68dec11de477";
-  playerId!: string;
+  gameId = store.state.gameId;
   isCheck = false;
   isCheckMate = false;
 
@@ -81,45 +80,44 @@ export default class ChessBoard extends Vue {
   gameClient!: Chess;
 
   created(): void {
-    const email = prompt("Enter email") || "email";
-    const password = prompt("Enter password") || "password";
     this.socket = io("http://localhost:3002");
     this.referee = new Referee();
-    login(email, password).then(({ data }) => {
-      this.playerId = data._id;
-      this.initGame();
-    });
+    this.initGame();
   }
 
   async initGame() {
-    const { data } = await getGame(this.gameId);
-    this.gameClient = new Chess();
-    data.moves.forEach((move: string) => {
-      this.gameClient.move(move);
-    });
-    this.isCheck = this.gameClient.isCheck();
-    this.isCheckMate = this.gameClient.isCheckmate();
-    this.pieces = initialBoardState(this.gameClient.board());
-    if (data.whitePlayerId === this.playerId) {
-      this.teamPlay = TeamType.WHITE;
-    } else {
-      this.teamPlay = TeamType.BLACK;
-    }
-    if (this.teamPlay === this.gameClient.turn()) {
-      this.turnOn = true;
-    }
-    this.socket.on(
-      `game:${this.gameId}:turn:${this.teamPlay}`,
-      (move: string) => {
+    if (this.gameId) {
+      const { data } = await getGame(this.gameId);
+      this.gameClient = new Chess();
+      data.moves.forEach((move: string) => {
         this.gameClient.move(move);
-        this.isCheck = this.gameClient.isCheck();
-        this.isCheckMate = this.gameClient.isCheckmate();
-        this.pieces = initialBoardState(this.gameClient.board());
-        this.changeBoard();
+      });
+      this.isCheck = this.gameClient.isCheck();
+      this.isCheckMate = this.gameClient.isCheckmate();
+      this.pieces = initialBoardState(this.gameClient.board());
+      if (data.whitePlayerId === store.state.player?._id) {
+        this.teamPlay = TeamType.WHITE;
+      } else if (data.blackPlayerId === store.state.player?._id) {
+        this.teamPlay = TeamType.BLACK;
+      } else {
+        this.teamPlay = TeamType.SPECTATOR;
+      }
+      if (this.teamPlay === this.gameClient.turn()) {
         this.turnOn = true;
       }
-    );
-    this.changeBoard();
+      this.socket.on(
+        `game:${this.gameId}:turn:${this.teamPlay}`,
+        (move: string) => {
+          this.gameClient.move(move);
+          this.isCheck = this.gameClient.isCheck();
+          this.isCheckMate = this.gameClient.isCheckmate();
+          this.pieces = initialBoardState(this.gameClient.board());
+          this.changeBoard();
+          this.turnOn = true;
+        }
+      );
+      this.changeBoard();
+    }
   }
 
   changeBoard() {

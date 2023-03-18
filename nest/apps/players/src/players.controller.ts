@@ -27,6 +27,7 @@ export class PlayersController {
 
   @MessagePattern('get-player-by-id')
   async getPlayerById(playerId: string) {
+    console.log('get-player-by-id', playerId);
     return this.playersService.findPlayer({ _id: playerId });
   }
 }
