@@ -7,7 +7,7 @@
   >
     <div @click.stop="" :class="$style.popup">
       <div :class="$style.close" @click="closePopup">x</div>
-      <form @submit.prevent="signup">
+      <form @submit.prevent="submit">
         <div :class="$style['form-group']">
           <label>Email address</label>
           <input v-model="model.email" type="email" placeholder="Enter email" />
@@ -58,24 +58,26 @@ export default class PopupSignup extends Vue {
     this.signupPopup.style.display = "none";
   }
 
-  signup() {
+  submit() {
     if (this.model.password !== this.confirmPassword) {
       alert("Password and confirm password not match");
       return;
     }
     signup(this.model)
-      .then((_res) => {
+      .then(() => {
         login({ email: this.model.email, password: this.model.password })
           .then((res) => {
             store.dispatch("setPlayer", res.data);
             alert("Đăng ký thành công");
           })
-          .catch((_err) => {
-            alert("Đăng nhập thất bại");
+          .catch((err) => {
+            alert("Đã xảy ra lỗi!");
+            console.log(err);
           });
       })
-      .catch((_err) => {
+      .catch((err) => {
         alert("Đăng ký thất bại");
+        console.log(err);
       });
     this.closePopup();
   }

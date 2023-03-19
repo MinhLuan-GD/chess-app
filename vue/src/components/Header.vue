@@ -88,11 +88,36 @@
         <span> Thêm nữa </span>
       </a>
     </div>
-    <div :class="$style['nav-item-sign']">
-      <div @click="signupPopupShow" :class="$style.signup">Đăng ký</div>
+    <div v-if="!$store.state.player">
+      <div :class="$style['nav-item-sign']">
+        <div @click="signupPopupShow" :class="$style.signup">Đăng ký</div>
+      </div>
+      <div :class="$style['nav-item-sign']">
+        <div @click="loginPopupShow" :class="$style.login">Đăng nhập</div>
+      </div>
     </div>
-    <div :class="$style['nav-item-sign']">
-      <div @click="loginPopupShow" :class="$style.login">Đăng nhập</div>
+    <div v-else>
+      <div :class="$style['nav-item']">
+        <a href="#" :class="$style.option">
+          <img
+            src="@/assets/icon/user.png"
+            alt=""
+            :class="$style['option-icon']"
+          />
+          <span> {{ $store.state.player.nickname }} </span>
+          <!-- <span>Luan</span> -->
+        </a>
+      </div>
+      <div :class="$style['nav-item']">
+        <a href="#" :class="$style.option">
+          <img
+            src="@/assets/icon/log-out.png"
+            alt=""
+            :class="$style['option-icon']"
+          />
+          <span> Đăng xuất </span>
+        </a>
+      </div>
     </div>
   </div>
 </template>
@@ -147,7 +172,7 @@ export default class Header extends Vue {
     display: flex;
     height: 46px;
     padding: 0px 20px;
-    justify-content: start;
+    justify-content: flex-start;
     margin: 3px 0;
     cursor: pointer;
     align-items: center;
@@ -159,6 +184,7 @@ export default class Header extends Vue {
       color: white;
       font-size: 18px;
       font-weight: bold;
+      display: flex;
       & .option-icon {
         height: 20px;
         width: 20px;

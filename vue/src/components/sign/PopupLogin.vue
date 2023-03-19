@@ -27,7 +27,9 @@
 </template>
 
 <script lang="ts">
+import { login } from "@/api/player";
 import { LoginModel } from "@/models/login";
+import store from "@/store";
 import { ref } from "vue";
 import { Vue } from "vue-class-component";
 
@@ -37,6 +39,19 @@ export default class PopupLogin extends Vue {
 
   closePopup() {
     this.loginPopup.style.display = "none";
+  }
+
+  submit() {
+    login(this.model)
+      .then((res) => {
+        alert("Đăng nhập thành công");
+        store.dispatch("setPlayer", res.data);
+        this.closePopup();
+      })
+      .catch((err) => {
+        alert("Đăng nhập thất bại");
+        console.log(err);
+      });
   }
 }
 </script>
