@@ -1,17 +1,23 @@
 <template>
-  <div :class="$style.container">
+  <div :class="$style.container" id="loading" ref="loading">
     <div :class="$style.waiting">
       Waiting
       <img src="@/assets/icon/Snake.gif" alt="" />
-      <div>Cancel</div>
+      <div @click="cancel">Cancel</div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import { ref } from "vue";
 import { Vue } from "vue-class-component";
 
-export default class Waiting extends Vue {}
+export default class Waiting extends Vue {
+  loading = ref() as unknown as HTMLElement;
+  cancel() {
+    this.loading.style.display = "none";
+  }
+}
 </script>
 
 <style lang="scss" module>
@@ -21,7 +27,6 @@ export default class Waiting extends Vue {}
   background-color: rgba(0, 0, 0, 0.5);
   top: 0;
   left: 0;
-  display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;

@@ -9,6 +9,7 @@ import store from "./store";
 export default class App extends Vue {
   created() {
     store.dispatch("getPlayer");
+    store.dispatch("getGameId");
   }
 }
 </script>

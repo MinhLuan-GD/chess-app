@@ -146,7 +146,7 @@
         </p>
       </div>
       <div :class="$style['main-button-wrap']">
-        <div :class="$style['main-button']">
+        <div :class="$style['main-button']" @click="joinGame">
           <img src="@/assets/icon/playhand.png" alt="" />
           <div :class="$style['main-button-title']">
             <h2>Chơi trực tuyến</h2>
@@ -166,9 +166,40 @@
 </template>
 
 <script lang="ts">
+import router from "@/router";
+import store from "@/store";
+import { io, Socket } from "socket.io-client";
 import { Vue } from "vue-class-component";
 
-export default class Main extends Vue {}
+export default class Main extends Vue {
+  socket!: Socket;
+  loading!: HTMLElement;
+
+  created(): void {
+    this.socket = io("http://localhost:3002");
+  }
+
+  mounted(): void {
+    this.loading = document.getElementById("loading") as HTMLElement;
+  }
+
+  joinGame(): void {
+    const { player } = store.state;
+    if (player) {
+      this.loading.style.display = "flex";
+      this.socket.emit("join", { userId: player._id });
+      this.socket.on(`games:${player._id}:created`, (gameId) => {
+        store.dispatch("setGameId", gameId);
+        this.loading.style.display = "none";
+        router.push("/game");
+      });
+    } else alert("Bạn chưa đăng nhập");
+  }
+
+  beforeUnmount(): void {
+    if (this.socket) this.socket.disconnect();
+  }
+}
 </script>
 
 <style lang="scss" module>
@@ -273,6 +304,7 @@ export default class Main extends Vue {}
       & .main-button {
         height: 80px;
         cursor: pointer;
+        color: #5c1810;
         background-color: #cea159;
         border-radius: 15px;
         display: flex;

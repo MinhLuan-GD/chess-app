@@ -108,7 +108,7 @@
           <!-- <span>Luan</span> -->
         </a>
       </div>
-      <div :class="$style['nav-item']">
+      <div :class="$style['nav-item']" @click="logout">
         <a href="#" :class="$style.option">
           <img
             src="@/assets/icon/log-out.png"
@@ -126,6 +126,7 @@
 import { Options, Vue } from "vue-class-component";
 import PopupLogin from "./sign/PopupLogin.vue";
 import PopupSignup from "./sign/PopupSignup.vue";
+import store from "@/store";
 
 @Options({
   components: {
@@ -148,6 +149,11 @@ export default class Header extends Vue {
 
   loginPopupShow() {
     this.loginPopup.style.display = "flex";
+  }
+
+  logout() {
+    window.location.href = `${process.env.VUE_APP_SOCKET_ENDPOINT}/auth/logout`;
+    store.dispatch("logout");
   }
 }
 </script>

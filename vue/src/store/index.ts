@@ -14,6 +14,7 @@ export default createStore<State>({
     },
     SET_GAME_ID(state, gameId: string) {
       state.gameId = gameId;
+      localStorage.setItem("gameId", gameId);
     },
   },
   actions: {
@@ -30,6 +31,15 @@ export default createStore<State>({
     },
     setGameId({ commit }, gameId: string) {
       commit("SET_GAME_ID", gameId);
+    },
+    getGameId({ commit }) {
+      const gameId = localStorage.getItem("gameId");
+      if (gameId) {
+        commit("SET_GAME_ID", gameId);
+      }
+    },
+    logout({ commit }) {
+      commit("SET_PLAYER", null);
     },
   },
   modules: {},

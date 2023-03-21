@@ -44,18 +44,18 @@ export default class Tile extends Vue {
 
 <style lang="scss">
 .tile {
-  height: 70px;
-  width: 70px;
+  height: calc(40vw / 8);
+  width: calc(40vw / 8);
   place-content: center;
   display: flex;
   justify-content: center;
   align-items: center;
   & .chess-piece {
     background-position: center;
-    background-size: 60px;
+    background-size: calc((40vw / 8) - 10%);
     background-repeat: no-repeat;
-    width: 70px;
-    height: 70px;
+    width: calc(40vw / 8);
+    height: calc(40vw / 8);
     cursor: grab;
     &:active {
       cursor: grabbing;
@@ -64,10 +64,10 @@ export default class Tile extends Vue {
 }
 
 .black-tile {
-  background-color: #aa5656;
+  background-color: #b58863;
 }
 .while-tile {
-  background-color: #f1dbbf;
+  background-color: #f0d9b5;
 }
 .tile-highlight:not(.chess-piece-tile):before {
   position: absolute;

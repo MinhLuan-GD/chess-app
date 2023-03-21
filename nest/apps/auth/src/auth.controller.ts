@@ -16,7 +16,6 @@ export class AuthController {
     @CurrentPlayer() player: any,
     @Res({ passthrough: true }) response: Response,
   ) {
-    console.log(player);
     await this.authService.login(player, response);
     response.send(player);
   }
@@ -32,6 +31,6 @@ export class AuthController {
   logout(@Res() res: Response) {
     // FIXME: replace base url
     this.authService.logout(res);
-    return res.redirect(`http://localhost:8080/login`);
+    return res.redirect(`http://localhost:8080`);
   }
 }

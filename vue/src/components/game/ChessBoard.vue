@@ -59,11 +59,14 @@ export default class ChessBoard extends Vue {
   grabPosition!: Position;
 
   pieceType = PieceType;
-  teamPlay!: string;
+  teamPlay = TeamType.SPECTATOR;
 
   gameId = store.state.gameId;
   isCheck = false;
   isCheckMate = false;
+
+  offsetTop!: number;
+  offsetLeft!: number;
 
   minX!: number;
   minY!: number;
@@ -187,17 +190,17 @@ export default class ChessBoard extends Vue {
   }
 
   mounted(): void {
-    this.minX = this.chessBoardRef.offsetLeft - 10;
-    this.minY = this.chessBoardRef.offsetTop - 10;
-    this.maxX =
-      this.chessBoardRef.offsetLeft + this.chessBoardRef.clientWidth - 60;
-    this.maxY =
-      this.chessBoardRef.offsetTop + this.chessBoardRef.clientHeight - 60;
+    this.offsetTop = this.chessBoardRef.offsetTop;
+    this.offsetLeft = this.chessBoardRef.offsetLeft;
+    this.minX = -10;
+    this.minY = -10;
+    this.maxX = this.chessBoardRef.clientWidth - 60;
+    this.maxY = this.chessBoardRef.clientHeight - 60;
   }
 
   url(chess: string) {
     const team = this.teamPlay === TeamType.BLACK ? "d" : "l";
-    return require(`@/assets/Chess_${chess}${team}t60.png`);
+    return require(`@/assets/pieces/${chess}${team}t.png`);
   }
 
   grabPiece(e: MouseEvent) {
@@ -224,8 +227,8 @@ export default class ChessBoard extends Vue {
 
   movePiece(e: MouseEvent) {
     if (this.activatePiece && this.chessBoardRef) {
-      const x = e.clientX - 36;
-      const y = e.clientY - 36;
+      const x = e.clientX - this.offsetLeft - 36;
+      const y = e.clientY - this.offsetTop - 36;
       if (x < this.minX) this.activatePiece.style.left = `${this.minX}px`;
       else if (x > this.maxX) {
         this.activatePiece.style.left = `${this.maxX}px`;
@@ -323,10 +326,10 @@ export default class ChessBoard extends Vue {
 .chess-board {
   display: grid;
   position: relative;
-  grid-template-columns: repeat(8, 70px);
-  grid-template-rows: repeat(8, 70px);
+  grid-template-columns: repeat(8, calc(40vw / 8));
+  grid-template-rows: repeat(8, calc(40vw / 8));
   color: rgb(255, 0, 0);
-  width: 560px;
+  width: 40vw;
 }
 .pawn-promotion-modal {
   display: none;

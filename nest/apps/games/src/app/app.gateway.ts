@@ -106,7 +106,6 @@ export class AppGateway
       'user:watched',
     )) as string;
     if (userWatchedGames) {
-      console.log(userWatchedGames);
       const gameClient = new Position();
       const game = await this.gamesRepository.create({
         whitePlayerId: payload.userId,
@@ -120,12 +119,17 @@ export class AppGateway
         gameClient.fen(),
         Date.parse('1d'),
       );
-      this.server.emit(`user:${payload.userId}:watched`, game._id);
-      this.server.emit(`user:${userWatchedGames}:watched`, game._id);
+      this.cacheManager.del('user:watched');
+      this.server.emit(`games:${payload.userId}:created`, game._id);
+      this.server.emit(`games:${userWatchedGames}:created`, game._id);
     } else {
-      console.log(userWatchedGames);
-      this.cacheManager.set('user:watched', payload.userId);
+      this.cacheManager.set('user:watched', payload.userId, 900000);
     }
+  }
+
+  @SubscribeMessage('cancel')
+  async joinCancel(_client: Socket, _payload: any) {
+    this.cacheManager.del('user:watched');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
