@@ -14,4 +14,6 @@ const signup = (model: SignupModel) =>
 const login = (model: LoginModel) =>
   api.post<Player>("/auth/login/", model, { withCredentials: true });
 
-export { currentPlayer, signup, login };
+const getPlayer = (id: string) => api.get<Player>(`/players/${id}`);
+
+export { currentPlayer, signup, login, getPlayer };

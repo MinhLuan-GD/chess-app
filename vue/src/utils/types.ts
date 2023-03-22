@@ -31,6 +31,13 @@ interface Player {
 interface State {
   player: Player | null;
   gameId: string | null;
+  gameMessages: Message[];
+}
+
+interface Message {
+  _id: string;
+  player: Player;
+  text: string;
 }
 
 interface Game {
@@ -41,8 +48,9 @@ interface Game {
   blackPlayerId: string;
   move_time_limit: string;
   game_time_limit: string;
+  messages: Message[];
   moves: string[];
-  status: string;
+  status: number;
 }
 
-export { Piece, Board, Position, State, Game, Player };
+export { Piece, Board, Position, State, Game, Player, Message };

@@ -11,6 +11,7 @@ import { Socket, Server } from 'socket.io';
 import { GamesRepository } from '../games.repository';
 import { Cache } from 'cache-manager';
 import { Position } from 'kokopu';
+import { GameStatus } from '@app/common/constants';
 
 @WebSocketGateway({
   cors: {
@@ -34,57 +35,51 @@ export class AppGateway
 
   @SubscribeMessage('move')
   async move(_client: Socket, payload: any) {
-    const fen = await this.getFenGame(payload.game);
-    if (fen) {
-      const position = new Position(fen);
-      position.play(payload.move);
-      this.cacheManager.set(
-        `games:${payload.game}`,
-        position.fen(),
-        Date.parse('1d'),
-      );
-      this.server.emit(
-        `game:${payload.game}:turn:${position.turn()}`,
-        payload.move,
-      );
+    let fen = await this.getFenGame(payload.game);
+    if (!fen) {
+      const game = await this.gamesRepository.findOne({ _id: payload.game });
+      fen = game.fen;
+    }
+    const position = new Position(fen);
+    if (!position.play(payload.move)) {
+      this.server.emit(`game:${payload.game}:error`, 'Invalid move');
+      return;
+    }
+    if (position.isCheckmate()) {
+      this.server.emit(`game:${payload.game}:end`, position.turn());
+      this.cacheManager.del(`games:${payload.game}`);
       this.gamesRepository.updateOne(
         { _id: payload.game },
         {
           $set: {
             fen: position.fen(),
+            status: GameStatus.FINISHED,
           },
-          $push: {
-            moves: payload.move,
-          },
+          $push: { moves: payload.move },
         },
       );
-    } else {
-      const game = await this.gamesRepository.findOne({ _id: payload.game });
-      if (game) {
-        const position = new Position(game.fen);
-        position.play(payload.move);
-        this.cacheManager.set(
-          `games:${payload.game}`,
-          position.fen(),
-          Date.parse('1d'),
-        );
-        this.server.emit(
-          `game:${payload.game}:turn:${position.turn()}`,
-          payload.move,
-        );
-        this.gamesRepository.updateOne(
-          { _id: payload.game },
-          {
-            $set: {
-              fen: position.fen(),
-            },
-            $push: {
-              moves: payload.move,
-            },
-          },
-        );
-      }
+      return;
     }
+    this.cacheManager.set(
+      `games:${payload.game}`,
+      position.fen(),
+      Date.parse('1d'),
+    );
+    this.server.emit(
+      `game:${payload.game}:turn:${position.turn()}`,
+      payload.move,
+    );
+    this.gamesRepository.updateOne(
+      { _id: payload.game },
+      {
+        $set: {
+          fen: position.fen(),
+        },
+        $push: {
+          moves: payload.move,
+        },
+      },
+    );
   }
 
   @SubscribeMessage('message')

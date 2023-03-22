@@ -1,11 +1,12 @@
 import { currentPlayer } from "@/api/player";
-import { Player, State } from "@/utils/types";
+import { Message, Player, State } from "@/utils/types";
 import { createStore } from "vuex";
 
 export default createStore<State>({
   state: {
     player: null,
     gameId: null,
+    gameMessages: [],
   },
   getters: {},
   mutations: {
@@ -15,6 +16,18 @@ export default createStore<State>({
     SET_GAME_ID(state, gameId: string) {
       state.gameId = gameId;
       localStorage.setItem("gameId", gameId);
+    },
+    DELETE_GAME_ID(state) {
+      state.gameId = null;
+      localStorage.removeItem("gameId");
+    },
+    SET_GAME_MESSAGES(state, messages: Message[]) {
+      state.gameMessages = messages;
+    },
+    PUSH_GAME_MESSAGE(state, message: Message) {
+      if (state.gameMessages) {
+        state.gameMessages.push(message);
+      }
     },
   },
   actions: {
@@ -32,6 +45,9 @@ export default createStore<State>({
     setGameId({ commit }, gameId: string) {
       commit("SET_GAME_ID", gameId);
     },
+    deleteGameId({ commit }) {
+      commit("DELETE_GAME_ID", null);
+    },
     getGameId({ commit }) {
       const gameId = localStorage.getItem("gameId");
       if (gameId) {
@@ -40,6 +56,12 @@ export default createStore<State>({
     },
     logout({ commit }) {
       commit("SET_PLAYER", null);
+    },
+    setGameMessages({ commit }, messages: Message[]) {
+      commit("SET_GAME_MESSAGES", messages);
+    },
+    pushGameMessage({ commit }, message: Message) {
+      commit("PUSH_GAME_MESSAGE", message);
     },
   },
   modules: {},

@@ -1,7 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 
-@Schema({ _id: false, versionKey: false })
+@Schema({ versionKey: false })
 export class Player {
+  _id: Types.ObjectId;
+
   @Prop({ required: true })
   nickname: string;
 

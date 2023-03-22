@@ -1,43 +1,81 @@
 <template>
-  <div :class="$style['pawn-promotion-modal']" ref="modalRef">
-    <div @click="() => promotePawn(pieceType.ROOK)">
-      <img :src="url('r')" alt="rook" />
-      <span>Rook</span>
+  <div :class="$style['main-container']" ref="mainContainerRef">
+    <div v-if="!turnOn" :class="$style['top-play']">&bull;</div>
+    <div :class="$style['top-player']">{{ opponentName }}</div>
+    <div
+      @mousedown="(e) => grabPiece(e)"
+      @dragstart="() => false"
+      @contextmenu.prevent="() => false"
+      :class="$style['chess-board']"
+      ref="chessBoardRef"
+    >
+      <div
+        :class="$style['pawn-promotion-modal']"
+        ref="modalRef"
+        @click="promotePawnCancel"
+      >
+        <div :class="$style.container" @click.stop="">
+          <div @click="() => promotePawn(pieceType.ROOK)">
+            <img :src="url('r')" alt="rook" />
+            <span>Rook</span>
+          </div>
+          <div @click="() => promotePawn(pieceType.BISHOP)">
+            <img :src="url('b')" alt="bishop" />
+            <span>Bishop</span>
+          </div>
+          <div @click="() => promotePawn(pieceType.KNIGHT)">
+            <img :src="url('n')" alt="knight" />
+            <span>Knight</span>
+          </div>
+          <div @click="() => promotePawn(pieceType.QUEEN)">
+            <img :src="url('q')" alt="queen" />
+            <span>Queen</span>
+          </div>
+        </div>
+      </div>
+      <div :class="$style['game-over']" ref="gameOverRef">
+        <div :class="$style.container">
+          <h2>Game Over</h2>
+          <div v-if="winner && loser" :class="$style['over-winner-loser']">
+            <div :class="$style['over-winner']">
+              <span>Winner: </span>
+              <span>{{ winner }}</span>
+            </div>
+            <div :class="$style['over-loser']">
+              <span>Loser: </span>
+              <span>{{ loser }}</span>
+            </div>
+          </div>
+          <div v-else :class="$style['over-draw']">Draw</div>
+          <div :class="$style['new-game']">
+            <button @click="newGame">Chơi lại</button>
+            <button @click="newGame">Chơi game mới</button>
+          </div>
+        </div>
+      </div>
+      <Tile
+        v-for="item of board"
+        :black="item.black"
+        :piece-image="item.image"
+        :highlight="item.highlight"
+        :key="item.key"
+        :team="`team${item.team}`"
+      />
     </div>
-    <div @click="() => promotePawn(pieceType.BISHOP)">
-      <img :src="url('b')" alt="bishop" />
-      <span>Bishop</span>
-    </div>
-    <div @click="() => promotePawn(pieceType.KNIGHT)">
-      <img :src="url('n')" alt="knight" />
-      <span>Knight</span>
-    </div>
-    <div @click="() => promotePawn(pieceType.QUEEN)">
-      <img :src="url('q')" alt="queen" />
-      <span>Queen</span>
-    </div>
-  </div>
-  <div
-    @mousedown="(e) => grabPiece(e)"
-    @dragstart="() => false"
-    @contextmenu.prevent="() => false"
-    :class="$style['chess-board']"
-    ref="chessBoardRef"
-  >
-    <Tile
-      v-for="item of board"
-      :black="item.black"
-      :piece-image="item.image"
-      :highlight="item.highlight"
-      :key="item.key"
-      :team="`team${item.team}`"
-    />
+    <div v-if="turnOn" :class="$style['bottom-play']">&bull;</div>
+    <div :class="$style['bottom-player']">{{ ourName }}</div>
   </div>
 </template>
 
 <script lang="ts">
-import { Piece, Board, Position } from "@/utils/types";
-import { PieceType, TeamType, samePosition, toAxis } from "@/utils/constants";
+import { Piece, Board, Position, Player } from "@/utils/types";
+import {
+  PieceType,
+  TeamType,
+  samePosition,
+  toAxis,
+  GameStatus,
+} from "@/utils/constants";
 import { ref } from "vue";
 import { Options, Vue } from "vue-class-component";
 import Referee from "@/referee/Referee";
@@ -47,16 +85,24 @@ import { Chess } from "chess.js";
 import { getGame } from "@/api/game";
 import { initialBoardState } from "@/utils/constants";
 import store from "@/store";
+import { getPlayer } from "@/api/player";
+import router from "@/router";
 
 @Options({ components: { Tile } })
 export default class ChessBoard extends Vue {
   activatePiece!: HTMLElement | null;
   chessBoardRef = ref() as unknown as HTMLDivElement;
   modalRef = ref() as unknown as HTMLDivElement;
+  gameOverRef = ref() as unknown as HTMLDivElement;
+  mainContainerRef = ref() as unknown as HTMLDivElement;
+  loading!: HTMLElement;
 
   board: Board[] = [];
   referee!: Referee;
   grabPosition!: Position;
+
+  ourName = "";
+  opponentName = "";
 
   pieceType = PieceType;
   teamPlay = TeamType.SPECTATOR;
@@ -65,13 +111,19 @@ export default class ChessBoard extends Vue {
   isCheck = false;
   isCheckMate = false;
 
+  winner = "";
+  loser = "";
+
   offsetTop!: number;
   offsetLeft!: number;
+  whitePlayer!: Player;
+  blackPlayer!: Player;
 
   minX!: number;
   minY!: number;
   maxX!: number;
   maxY!: number;
+  tileSize!: number;
 
   pieces!: Piece[];
 
@@ -91,6 +143,13 @@ export default class ChessBoard extends Vue {
   async initGame() {
     if (this.gameId) {
       const { data } = await getGame(this.gameId);
+      if (data.status === GameStatus.FINISHED) {
+        alert("Game đã kết thúc");
+        router.push("/");
+        store.dispatch("deleteGameId");
+        return;
+      }
+      store.dispatch("setGameMessages", data.messages);
       this.gameClient = new Chess();
       data.moves.forEach((move: string) => {
         this.gameClient.move(move);
@@ -105,6 +164,23 @@ export default class ChessBoard extends Vue {
       } else {
         this.teamPlay = TeamType.SPECTATOR;
       }
+      getPlayer(data.whitePlayerId).then(({ data }) => {
+        this.whitePlayer = data;
+        if (this.teamPlay === TeamType.WHITE) {
+          this.ourName = data.nickname;
+        } else {
+          this.opponentName = data.nickname;
+        }
+      });
+      getPlayer(data.blackPlayerId).then(({ data }) => {
+        this.blackPlayer = data;
+        if (this.teamPlay === TeamType.BLACK) {
+          this.ourName = data.nickname;
+        } else {
+          this.opponentName = data.nickname;
+        }
+      });
+
       if (this.teamPlay === this.gameClient.turn()) {
         this.turnOn = true;
       }
@@ -119,7 +195,25 @@ export default class ChessBoard extends Vue {
           this.turnOn = true;
         }
       );
+      this.socket.on(`game:${this.gameId}:end`, (data: any) => {
+        if (data === TeamType.BLACK) {
+          this.winner = this.whitePlayer.nickname;
+          this.loser = this.blackPlayer.nickname;
+        } else if (data === TeamType.WHITE) {
+          this.winner = this.blackPlayer.nickname;
+          this.loser = this.whitePlayer.nickname;
+        } else {
+          this.winner = "";
+          this.loser = "";
+        }
+        this.gameOverRef.style.display = "flex";
+      });
+      this.socket.on(`game:${this.gameId}:error`, () => {
+        window.location.reload();
+      });
       this.changeBoard();
+    } else {
+      router.push("/");
     }
   }
 
@@ -179,23 +273,25 @@ export default class ChessBoard extends Vue {
 
   getIndexPiece(clientX: number, clientY: number): Position {
     if (this.teamPlay === TeamType.WHITE) {
-      const x = Math.floor((clientX - this.chessBoardRef.offsetLeft) / 70);
-      const y = 7 - Math.floor((clientY - this.chessBoardRef.offsetTop) / 70);
+      const x = Math.floor((clientX - this.offsetLeft) / this.tileSize);
+      const y = 7 - Math.floor((clientY - this.offsetTop) / this.tileSize);
       return { x, y };
     } else {
-      const x = 7 - Math.floor((clientX - this.chessBoardRef.offsetLeft) / 70);
-      const y = Math.floor((clientY - this.chessBoardRef.offsetTop) / 70);
+      const x = 7 - Math.floor((clientX - this.offsetLeft) / this.tileSize);
+      const y = Math.floor((clientY - this.offsetTop) / this.tileSize);
       return { x, y };
     }
   }
 
   mounted(): void {
-    this.offsetTop = this.chessBoardRef.offsetTop;
-    this.offsetLeft = this.chessBoardRef.offsetLeft;
+    this.tileSize = this.chessBoardRef.clientWidth / 8;
+    this.offsetLeft = this.mainContainerRef.offsetLeft + 30;
+    this.offsetTop = this.mainContainerRef.offsetTop;
     this.minX = -10;
     this.minY = -10;
-    this.maxX = this.chessBoardRef.clientWidth - 60;
-    this.maxY = this.chessBoardRef.clientHeight - 60;
+    this.maxX = this.chessBoardRef.clientWidth - this.tileSize + 10;
+    this.maxY = this.chessBoardRef.clientHeight - this.tileSize + 10;
+    this.loading = document.getElementById("loading") as HTMLElement;
   }
 
   url(chess: string) {
@@ -260,7 +356,7 @@ export default class ChessBoard extends Vue {
           const to = toAxis({ x, y });
           const promotionRow = currentPiece.team === TeamType.WHITE ? 7 : 0;
           if (y === promotionRow && currentPiece.type === PieceType.PAWN) {
-            this.modalRef.style.display = "block";
+            this.modalRef.style.display = "flex";
             this.promotionPawn = { from, to };
           } else {
             try {
@@ -268,6 +364,17 @@ export default class ChessBoard extends Vue {
                 this.turnOn = false;
                 this.pieces = initialBoardState(this.gameClient.board());
                 this.changeBoard();
+                if (this.gameClient.isCheckmate()) {
+                  this.gameOverRef.style.display = "flex";
+                  this.winner =
+                    this.teamPlay === TeamType.WHITE
+                      ? this.whitePlayer.nickname
+                      : this.blackPlayer.nickname;
+                  this.loser =
+                    this.teamPlay === TeamType.WHITE
+                      ? this.blackPlayer.nickname
+                      : this.whitePlayer.nickname;
+                }
                 this.socket.emit("move", {
                   game: this.gameId,
                   move: this.gameClient.history().pop(),
@@ -291,6 +398,17 @@ export default class ChessBoard extends Vue {
         this.turnOn = false;
         this.pieces = initialBoardState(this.gameClient.board());
         this.changeBoard();
+        if (this.gameClient.isCheckmate()) {
+          this.gameOverRef.style.display = "flex";
+          this.winner =
+            this.teamPlay === TeamType.WHITE
+              ? this.whitePlayer.nickname
+              : this.blackPlayer.nickname;
+          this.loser =
+            this.teamPlay === TeamType.WHITE
+              ? this.blackPlayer.nickname
+              : this.whitePlayer.nickname;
+        }
         this.socket.emit("move", {
           game: this.gameId,
           move: this.gameClient.history().pop(),
@@ -299,6 +417,10 @@ export default class ChessBoard extends Vue {
     } catch (error) {
       console.log("valid move");
     }
+  }
+
+  promotePawnCancel() {
+    this.modalRef.style.display = "none";
   }
 
   updateValidMoves() {
@@ -317,44 +439,167 @@ export default class ChessBoard extends Vue {
     this.changeBoard();
   }
 
+  newGame(): void {
+    const { player } = store.state;
+    if (player) {
+      this.loading.style.display = "flex";
+      this.socket.emit("join", { userId: player._id });
+      this.socket.on(`games:${player._id}:created`, (gameId) => {
+        store.dispatch("setGameId", gameId);
+        this.loading.style.display = "none";
+        window.location.reload();
+      });
+    } else alert("Bạn chưa đăng nhập");
+  }
+
   beforeUnmount(): void {
     if (this.socket) this.socket.disconnect();
   }
 }
 </script>
 <style lang="scss" module>
-.chess-board {
-  display: grid;
+.main-container {
   position: relative;
-  grid-template-columns: repeat(8, calc(40vw / 8));
-  grid-template-rows: repeat(8, calc(40vw / 8));
-  color: rgb(255, 0, 0);
-  width: 40vw;
-}
-.pawn-promotion-modal {
-  display: none;
-  position: absolute;
-  z-index: 2;
-  width: 140px;
-  height: 260px;
-  left: 210px;
-  top: 150px;
-  background-color: aliceblue;
-  padding: 10px;
-  & div {
+  & .top-player {
+    color: aliceblue;
+    margin-left: 30px;
+    font-size: 22px;
+  }
+  & .top-play {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30px;
+    color: rgb(13, 173, 13);
+    font-size: 40px;
+    line-height: 0.6;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    cursor: pointer;
-    &:hover {
-      background-color: antiquewhite;
+    justify-content: center;
+  }
+  & .bottom-player {
+    color: aliceblue;
+    margin-left: 30px;
+    font-size: 22px;
+  }
+  & .bottom-play {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    color: rgb(13, 173, 13);
+    font-size: 40px;
+    line-height: 0.6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  & .chess-board {
+    display: grid;
+    position: relative;
+    grid-template-columns: repeat(8, calc(38vw / 8));
+    grid-template-rows: repeat(8, calc(38vw / 8));
+    width: 38vw;
+    margin-left: 30px;
+    & .pawn-promotion-modal {
+      display: none;
+      position: absolute;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      color: #0f0f0f;
+      & .container {
+        width: 140px;
+        height: 260px;
+        background-color: aliceblue;
+        padding: 10px;
+        & div {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: pointer;
+          &:hover {
+            background-color: antiquewhite;
+          }
+          & span {
+            width: 60px;
+          }
+          & img {
+            width: 60px;
+            height: 60px;
+          }
+        }
+      }
     }
-    & span {
-      width: 60px;
-    }
-    & img {
-      width: 60px;
-      height: 60px;
+
+    & .game-over {
+      display: none;
+      position: absolute;
+      z-index: 3;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      & .container {
+        width: 25vw;
+        height: 18vw;
+        background-color: aliceblue;
+        padding: 10px;
+        border: 1px solid #0f0f0f;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        & h2 {
+          text-align: center;
+          margin: 0;
+        }
+        & .over-winner-loser {
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          & .over-winner {
+            font-weight: bold;
+            width: 160px;
+            text-align: center;
+          }
+          & .over-loser {
+            color: #a0a0a0;
+            width: 160px;
+            text-align: center;
+          }
+        }
+        & .over-draw {
+          text-align: center;
+          font-size: 36px;
+          font-weight: bold;
+        }
+        & .new-game {
+          display: flex;
+          justify-content: space-evenly;
+          & button {
+            width: 120px;
+            height: 40px;
+            border: 1px solid #b58863;
+            border-radius: 5px;
+            background-color: #b58863;
+            color: #fff;
+            cursor: pointer;
+            &:hover {
+              background-color: #fff;
+              color: #0f0f0f;
+            }
+          }
+        }
+      }
     }
   }
 }

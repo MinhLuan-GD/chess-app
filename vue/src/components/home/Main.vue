@@ -146,11 +146,22 @@
         </p>
       </div>
       <div :class="$style['main-button-wrap']">
-        <div :class="$style['main-button']" @click="joinGame">
+        <div
+          v-if="!$store.state.gameId"
+          :class="$style['main-button']"
+          @click="joinGame"
+        >
           <img src="@/assets/icon/playhand.png" alt="" />
           <div :class="$style['main-button-title']">
             <h2>Chơi trực tuyến</h2>
             Đấu với ai đó cùng cấp độ với bạn
+          </div>
+        </div>
+        <div v-else :class="$style['main-button']" @click="continueGame">
+          <img src="@/assets/icon/playhand.png" alt="" />
+          <div :class="$style['main-button-title']">
+            <h2>Chơi tiếp</h2>
+            Tiếp tục ván đấu của bạn
           </div>
         </div>
         <div :class="$style['main-button']">
@@ -181,6 +192,10 @@ export default class Main extends Vue {
 
   mounted(): void {
     this.loading = document.getElementById("loading") as HTMLElement;
+  }
+
+  continueGame() {
+    router.push("/game");
   }
 
   joinGame(): void {

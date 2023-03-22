@@ -44,18 +44,18 @@ export default class Tile extends Vue {
 
 <style lang="scss">
 .tile {
-  height: calc(40vw / 8);
-  width: calc(40vw / 8);
+  height: calc(38vw / 8);
+  width: calc(38vw / 8);
   place-content: center;
   display: flex;
   justify-content: center;
   align-items: center;
   & .chess-piece {
     background-position: center;
-    background-size: calc((40vw / 8) - 10%);
+    background-size: calc((38vw / 8) - 10%);
     background-repeat: no-repeat;
-    width: calc(40vw / 8);
-    height: calc(40vw / 8);
+    width: calc(38vw / 8);
+    height: calc(38vw / 8);
     cursor: grab;
     &:active {
       cursor: grabbing;

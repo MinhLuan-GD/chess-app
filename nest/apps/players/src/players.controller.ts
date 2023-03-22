@@ -10,7 +10,7 @@ export class PlayersController {
     @Inject(Services.PLAYERS) private readonly playersService: IPlayersService,
   ) {}
 
-  @Get()
+  @Get(':id')
   getPlayer(@Param('id') id: string) {
     return this.playersService.getPlayerById(id);
   }

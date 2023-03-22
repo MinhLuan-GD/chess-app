@@ -202,6 +202,11 @@ enum Routes {
   PROFILE = "/profile",
 }
 
+enum GameStatus {
+  IN_PROGRESS,
+  FINISHED,
+}
+
 export {
   VERTICAL_AXIS,
   HORIZONTAL_AXIS,
@@ -211,4 +216,5 @@ export {
   samePosition,
   toAxis,
   Routes,
+  GameStatus,
 };

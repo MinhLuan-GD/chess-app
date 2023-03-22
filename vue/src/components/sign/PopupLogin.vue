@@ -7,7 +7,7 @@
   >
     <div @click.stop="" :class="$style.popup">
       <div :class="$style.close" @click="closePopup">x</div>
-      <form @submit.prevent="">
+      <form @submit.prevent="submit">
         <div :class="$style['form-group']">
           <label>Email address</label>
           <input v-model="model.email" type="email" placeholder="Enter email" />

@@ -7,6 +7,7 @@
     </div>
     <Footer />
   </div>
+  <Waiting />
 </template>
 
 <script lang="ts">
@@ -15,8 +16,9 @@ import { Options, Vue } from "vue-class-component";
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import Chat from "@/components/game/Chat.vue";
+import Waiting from "@/components/home/Waiting.vue";
 
-@Options({ components: { ChessBoard, Header, Footer, Chat } })
+@Options({ components: { ChessBoard, Header, Footer, Chat, Waiting } })
 export default class GameView extends Vue {}
 </script>
 
