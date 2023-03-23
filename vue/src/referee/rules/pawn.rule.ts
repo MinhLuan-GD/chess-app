@@ -1,5 +1,6 @@
-import { samePosition, TeamType } from "@/utils/constants";
+import { samePosition, TeamType, toAxis } from "@/utils/constants";
 import { Position, Piece } from "@/utils/types";
+import { Chess } from "chess.js";
 import { tileIsOccupied, tileIsOccupiedOpponent } from "./general.rule";
 
 export const pawnMove = (
@@ -52,9 +53,10 @@ export const pawnMove = (
 
 export const getPossiblePawnMoves = (
   piece: Piece,
-  boardState: Piece[]
+  boardState: Piece[],
+  gameClient: Chess
 ): Position[] => {
-  const possibleMoves: Position[] = [];
+  let possibleMoves: Position[] = [];
 
   const specialRow = piece.team === TeamType.WHITE ? 1 : 6;
   const pawnDirection = piece.team === TeamType.WHITE ? 1 : -1;
@@ -108,6 +110,18 @@ export const getPossiblePawnMoves = (
       possibleMoves.push(upperRightAttack);
     }
   }
+
+  possibleMoves = possibleMoves.filter((move) => {
+    const game = new Chess(gameClient.fen());
+    const from = toAxis(piece.position);
+    const to = toAxis(move);
+    try {
+      game.move({ from, to });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  });
 
   return possibleMoves;
 };

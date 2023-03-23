@@ -53,6 +53,7 @@
           </div>
         </div>
       </div>
+      <div :class="$style.check" ref="checkRef">Check</div>
       <Tile
         v-for="item of board"
         :black="item.black"
@@ -95,6 +96,7 @@ export default class ChessBoard extends Vue {
   modalRef = ref() as unknown as HTMLDivElement;
   gameOverRef = ref() as unknown as HTMLDivElement;
   mainContainerRef = ref() as unknown as HTMLDivElement;
+  checkRef = ref() as unknown as HTMLDivElement;
   loading!: HTMLElement;
 
   board: Board[] = [];
@@ -157,61 +159,73 @@ export default class ChessBoard extends Vue {
       this.isCheck = this.gameClient.isCheck();
       this.isCheckMate = this.gameClient.isCheckmate();
       this.pieces = initialBoardState(this.gameClient.board());
-      if (data.whitePlayerId === store.state.player?._id) {
-        this.teamPlay = TeamType.WHITE;
-      } else if (data.blackPlayerId === store.state.player?._id) {
-        this.teamPlay = TeamType.BLACK;
-      } else {
-        this.teamPlay = TeamType.SPECTATOR;
-      }
-      getPlayer(data.whitePlayerId).then(({ data }) => {
-        this.whitePlayer = data;
-        if (this.teamPlay === TeamType.WHITE) {
-          this.ourName = data.nickname;
-        } else {
-          this.opponentName = data.nickname;
-        }
-      });
-      getPlayer(data.blackPlayerId).then(({ data }) => {
-        this.blackPlayer = data;
-        if (this.teamPlay === TeamType.BLACK) {
-          this.ourName = data.nickname;
-        } else {
-          this.opponentName = data.nickname;
-        }
-      });
-
-      if (this.teamPlay === this.gameClient.turn()) {
-        this.turnOn = true;
-      }
-      this.socket.on(
-        `game:${this.gameId}:turn:${this.teamPlay}`,
-        (move: string) => {
-          this.gameClient.move(move);
-          this.isCheck = this.gameClient.isCheck();
-          this.isCheckMate = this.gameClient.isCheckmate();
-          this.pieces = initialBoardState(this.gameClient.board());
+      const interval = setInterval(() => {
+        if (store.state.player) {
+          if (data.whitePlayerId === store.state.player._id) {
+            this.teamPlay = TeamType.WHITE;
+          } else if (data.blackPlayerId === store.state.player._id) {
+            this.teamPlay = TeamType.BLACK;
+          } else {
+            this.teamPlay = TeamType.SPECTATOR;
+          }
+          getPlayer(data.whitePlayerId).then(({ data }) => {
+            this.whitePlayer = data;
+            if (this.teamPlay === TeamType.WHITE) {
+              this.ourName = data.nickname;
+            } else {
+              this.opponentName = data.nickname;
+            }
+          });
+          getPlayer(data.blackPlayerId).then(({ data }) => {
+            this.blackPlayer = data;
+            if (this.teamPlay === TeamType.BLACK) {
+              this.ourName = data.nickname;
+            } else {
+              this.opponentName = data.nickname;
+            }
+          });
+          if (this.teamPlay === this.gameClient.turn()) {
+            this.turnOn = true;
+          }
+          this.socket.on(
+            `game:${this.gameId}:turn:${this.teamPlay}`,
+            (move: string) => {
+              this.gameClient.move(move);
+              this.isCheck = this.gameClient.isCheck();
+              if (this.isCheck) {
+                this.checkRef.style.display = "flex";
+                for (let i = 1; i <= 10; i++) {
+                  setTimeout(() => {
+                    this.checkRef.style.opacity = (1 - i / 10).toString();
+                  }, 60 * i);
+                }
+              }
+              this.isCheckMate = this.gameClient.isCheckmate();
+              this.pieces = initialBoardState(this.gameClient.board());
+              this.changeBoard();
+              this.turnOn = true;
+            }
+          );
+          this.socket.on(`game:${this.gameId}:end`, (data: any) => {
+            if (data === TeamType.BLACK) {
+              this.winner = this.whitePlayer.nickname;
+              this.loser = this.blackPlayer.nickname;
+            } else if (data === TeamType.WHITE) {
+              this.winner = this.blackPlayer.nickname;
+              this.loser = this.whitePlayer.nickname;
+            } else {
+              this.winner = "";
+              this.loser = "";
+            }
+            this.gameOverRef.style.display = "flex";
+          });
+          this.socket.on(`game:${this.gameId}:error`, () => {
+            window.location.reload();
+          });
           this.changeBoard();
-          this.turnOn = true;
+          clearInterval(interval);
         }
-      );
-      this.socket.on(`game:${this.gameId}:end`, (data: any) => {
-        if (data === TeamType.BLACK) {
-          this.winner = this.whitePlayer.nickname;
-          this.loser = this.blackPlayer.nickname;
-        } else if (data === TeamType.WHITE) {
-          this.winner = this.blackPlayer.nickname;
-          this.loser = this.whitePlayer.nickname;
-        } else {
-          this.winner = "";
-          this.loser = "";
-        }
-        this.gameOverRef.style.display = "flex";
-      });
-      this.socket.on(`game:${this.gameId}:error`, () => {
-        window.location.reload();
-      });
-      this.changeBoard();
+      }, 100);
     } else {
       router.push("/");
     }
@@ -424,12 +438,14 @@ export default class ChessBoard extends Vue {
   }
 
   updateValidMoves() {
-    if (!this.isCheck) {
-      this.pieces.forEach((p) => {
-        p.possibleMoves = this.referee.getValidMoves(p, this.pieces);
-      });
-      this.changeBoard();
-    }
+    this.pieces.forEach((p) => {
+      p.possibleMoves = this.referee.getValidMoves(
+        p,
+        this.pieces,
+        this.gameClient
+      );
+    });
+    this.changeBoard();
   }
 
   deleteValidMoves() {
@@ -600,6 +616,23 @@ export default class ChessBoard extends Vue {
           }
         }
       }
+    }
+
+    & .check {
+      position: absolute;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: rgba(255, 0, 0, 0.2);
+      font-size: 40px;
+      display: flex;
+      opacity: 0;
+      pointer-events: none;
+      justify-content: center;
+      align-items: center;
+      color: #5c1810;
     }
   }
 }

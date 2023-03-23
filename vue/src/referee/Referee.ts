@@ -14,6 +14,7 @@ import {
   getPossibleQueenMoves,
   getPossibleKingMoves,
 } from "./rules";
+import { Chess } from "chess.js";
 
 export default class Referee {
   isEnPassantMove(
@@ -103,20 +104,24 @@ export default class Referee {
     return validMode;
   }
 
-  getValidMoves(piece: Piece, boardState: Piece[]): Position[] {
+  getValidMoves(
+    piece: Piece,
+    boardState: Piece[],
+    gameClient: Chess
+  ): Position[] {
     switch (piece.type) {
       case PieceType.PAWN:
-        return getPossiblePawnMoves(piece, boardState);
+        return getPossiblePawnMoves(piece, boardState, gameClient);
       case PieceType.KNIGHT:
-        return getPossibleKnightMoves(piece, boardState);
+        return getPossibleKnightMoves(piece, boardState, gameClient);
       case PieceType.BISHOP:
-        return getPossibleBishopMoves(piece, boardState);
+        return getPossibleBishopMoves(piece, boardState, gameClient);
       case PieceType.ROOK:
-        return getPossibleRookMoves(piece, boardState);
+        return getPossibleRookMoves(piece, boardState, gameClient);
       case PieceType.QUEEN:
-        return getPossibleQueenMoves(piece, boardState);
+        return getPossibleQueenMoves(piece, boardState, gameClient);
       case PieceType.KING:
-        return getPossibleKingMoves(piece, boardState);
+        return getPossibleKingMoves(piece, boardState, gameClient);
 
       default:
         return [];

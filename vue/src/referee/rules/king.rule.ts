@@ -1,5 +1,6 @@
-import { TeamType, samePosition } from "@/utils/constants";
+import { TeamType, samePosition, toAxis } from "@/utils/constants";
 import { Position, Piece } from "@/utils/types";
+import { Chess } from "chess.js";
 import {
   tileIsEmptyOrOccupiedByOpponent,
   tileIsOccupied,
@@ -45,9 +46,10 @@ export const kingMove = (
 
 export const getPossibleKingMoves = (
   piece: Piece,
-  boardState: Piece[]
+  boardState: Piece[],
+  gameClient: Chess
 ): Position[] => {
-  const possibleMoves: Position[] = [];
+  let possibleMoves: Position[] = [];
 
   for (let i = 1; i < 2; i++) {
     const destination: Position = {
@@ -176,6 +178,32 @@ export const getPossibleKingMoves = (
       break;
     }
   }
+
+  if (piece.team === TeamType.WHITE) {
+    if (samePosition(piece.position, { x: 4, y: 0 })) {
+      possibleMoves.push({ x: 6, y: 0 });
+      possibleMoves.push({ x: 2, y: 0 });
+    }
+  }
+
+  if (piece.team === TeamType.BLACK) {
+    if (samePosition(piece.position, { x: 4, y: 7 })) {
+      possibleMoves.push({ x: 6, y: 7 });
+      possibleMoves.push({ x: 2, y: 7 });
+    }
+  }
+
+  possibleMoves = possibleMoves.filter((move) => {
+    const game = new Chess(gameClient.fen());
+    const from = toAxis(piece.position);
+    const to = toAxis(move);
+    try {
+      game.move({ from, to });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  });
 
   return possibleMoves;
 };

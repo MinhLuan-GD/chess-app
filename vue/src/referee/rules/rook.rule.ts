@@ -1,5 +1,6 @@
-import { TeamType, samePosition } from "@/utils/constants";
+import { TeamType, samePosition, toAxis } from "@/utils/constants";
 import { Position, Piece } from "@/utils/types";
+import { Chess } from "chess.js";
 import {
   tileIsEmptyOrOccupiedByOpponent,
   tileIsOccupied,
@@ -48,9 +49,10 @@ export const rookMove = (
 
 export const getPossibleRookMoves = (
   piece: Piece,
-  boardState: Piece[]
+  boardState: Piece[],
+  gameClient: Chess
 ): Position[] => {
-  const possibleMoves: Position[] = [];
+  let possibleMoves: Position[] = [];
 
   for (let i = 1; i < 8; i++) {
     const destination: Position = {
@@ -115,6 +117,18 @@ export const getPossibleRookMoves = (
       break;
     }
   }
+
+  possibleMoves = possibleMoves.filter((move) => {
+    const game = new Chess(gameClient.fen());
+    const from = toAxis(piece.position);
+    const to = toAxis(move);
+    try {
+      game.move({ from, to });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  });
 
   return possibleMoves;
 };

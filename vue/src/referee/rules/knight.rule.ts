@@ -1,5 +1,6 @@
-import { TeamType } from "@/utils/constants";
+import { TeamType, toAxis } from "@/utils/constants";
 import { Position, Piece } from "@/utils/types";
+import { Chess } from "chess.js";
 import { tileIsEmptyOrOccupiedByOpponent } from "./general.rule";
 
 export const knightMove = (
@@ -35,9 +36,10 @@ export const knightMove = (
 
 export const getPossibleKnightMoves = (
   piece: Piece,
-  boardState: Piece[]
+  boardState: Piece[],
+  gameClient: Chess
 ): Position[] => {
-  const possibleMoves: Position[] = [];
+  let possibleMoves: Position[] = [];
 
   for (let i = -1; i < 2; i += 2) {
     for (let j = -1; j < 2; j += 2) {
@@ -63,6 +65,18 @@ export const getPossibleKnightMoves = (
       }
     }
   }
+
+  possibleMoves = possibleMoves.filter((move) => {
+    const game = new Chess(gameClient.fen());
+    const from = toAxis(piece.position);
+    const to = toAxis(move);
+    try {
+      game.move({ from, to });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  });
 
   return possibleMoves;
 };
