@@ -47,6 +47,7 @@ export class AppGateway
     }
     if (position.isCheckmate()) {
       this.server.emit(`game:${payload.game}:end`, position.turn());
+      this.server.emit(`game:${payload.game}:turn:s`, payload.move);
       this.cacheManager.del(`games:${payload.game}`);
       this.gamesRepository.updateOne(
         { _id: payload.game },
@@ -69,6 +70,7 @@ export class AppGateway
       `game:${payload.game}:turn:${position.turn()}`,
       payload.move,
     );
+    this.server.emit(`game:${payload.game}:turn:s`, payload.move);
     this.gamesRepository.updateOne(
       { _id: payload.game },
       {
@@ -97,14 +99,17 @@ export class AppGateway
 
   @SubscribeMessage('join')
   async handleJoin(_client: Socket, payload: any) {
-    const userWatchedGames = (await this.cacheManager.get(
-      'user:watched',
-    )) as string;
+    const userWatchedGames = (await this.cacheManager.get('user:watched')) as {
+      id: string;
+      name: string;
+    };
     if (userWatchedGames) {
       const gameClient = new Position();
       const game = await this.gamesRepository.create({
-        whitePlayerId: payload.userId,
-        blackPlayerId: userWatchedGames,
+        whitePlayerId: payload.id,
+        whitePlayerName: payload.name,
+        blackPlayerId: userWatchedGames.id,
+        blackPlayerName: userWatchedGames.name,
         game_time_limit: '2m',
         move_time_limit: '30m',
         fen: gameClient.fen(),
@@ -115,10 +120,10 @@ export class AppGateway
         Date.parse('1d'),
       );
       this.cacheManager.del('user:watched');
-      this.server.emit(`games:${payload.userId}:created`, game._id);
-      this.server.emit(`games:${userWatchedGames}:created`, game._id);
+      this.server.emit(`games:${payload.id}:created`, game._id);
+      this.server.emit(`games:${userWatchedGames.id}:created`, game._id);
     } else {
-      this.cacheManager.set('user:watched', payload.userId, 900000);
+      this.cacheManager.set('user:watched', payload, Date.parse('12h'));
     }
   }
 

@@ -200,6 +200,7 @@ enum Routes {
   GAME = "/game",
   GAME_OPTION = "/game-option",
   PROFILE = "/profile",
+  LISTGAME = "/listgame",
 }
 
 enum GameStatus {

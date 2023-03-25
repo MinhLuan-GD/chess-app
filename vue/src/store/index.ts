@@ -1,11 +1,13 @@
+import { getGames } from "@/api/game";
 import { currentPlayer } from "@/api/player";
-import { Message, Player, State } from "@/utils/types";
+import { Game, Message, Player, State } from "@/utils/types";
 import { createStore } from "vuex";
 
 export default createStore<State>({
   state: {
     player: null,
     gameId: null,
+    games: [],
     gameMessages: [],
   },
   getters: {},
@@ -28,6 +30,9 @@ export default createStore<State>({
       if (state.gameMessages) {
         state.gameMessages.push(message);
       }
+    },
+    SET_GAME(state, games) {
+      state.games = games;
     },
   },
   actions: {
@@ -62,6 +67,17 @@ export default createStore<State>({
     },
     pushGameMessage({ commit }, message: Message) {
       commit("PUSH_GAME_MESSAGE", message);
+    },
+    async getTenGames({ commit }) {
+      try {
+        const { data } = await getGames();
+        commit("SET_GAME", data);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    setGames({ commit }, games: Game[]) {
+      commit("SET_GAME", games);
     },
   },
   modules: {},

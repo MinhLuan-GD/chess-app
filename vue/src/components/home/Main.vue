@@ -202,7 +202,7 @@ export default class Main extends Vue {
     const { player } = store.state;
     if (player) {
       this.loading.style.display = "flex";
-      this.socket.emit("join", { userId: player._id });
+      this.socket.emit("join", { id: player._id, name: player.nickname });
       this.socket.on(`games:${player._id}:created`, (gameId) => {
         store.dispatch("setGameId", gameId);
         this.loading.style.display = "none";
@@ -224,7 +224,6 @@ export default class Main extends Vue {
   display: flex;
   justify-content: center;
   margin-top: 15px;
-  grid-area: main;
   & .board {
     width: 33vw;
     height: 33vw;

@@ -73,11 +73,13 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     select?: string,
     limit = 0,
     sort?: any,
+    skip = 0,
   ) {
     return this.model
       .find(filterQuery)
       .select(select)
       .limit(limit)
+      .skip(skip)
       .sort(sort)
       .lean();
   }

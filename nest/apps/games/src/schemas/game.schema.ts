@@ -16,8 +16,14 @@ export class Game {
   @Prop({ required: true, type: Types.ObjectId })
   whitePlayerId: Types.ObjectId | string;
 
+  @Prop({ required: true })
+  whitePlayerName: string;
+
   @Prop({ required: true, type: Types.ObjectId })
   blackPlayerId: Types.ObjectId | string;
+
+  @Prop({ required: true })
+  blackPlayerName: string;
 
   @Prop({ required: true })
   move_time_limit: string;

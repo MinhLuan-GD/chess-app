@@ -1,5 +1,13 @@
-import { Routes, Services } from '@app/common/constants';
-import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
+import { GameStatus, Routes, Services } from '@app/common/constants';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CreateGameDto } from './dtos/create-game.dto';
 import { IGamesService } from './games.interface';
 import { Game } from './schemas/game.schema';
@@ -10,9 +18,21 @@ export class GamesController {
     @Inject(Services.GAMES) private readonly gamesService: IGamesService,
   ) {}
 
-  @Get()
-  async getGames(): Promise<Game[]> {
-    return this.gamesService.getGames();
+  @Get('current')
+  async getCurrentGames(@Query() query: any): Promise<Game[] | any> {
+    const page = query.page ?? 1;
+    return this.gamesService.getCurrentGames(
+      { status: GameStatus.IN_PROGRESS },
+      page,
+    );
+  }
+
+  @Get('current/len')
+  async getCurrentGamesLen(): Promise<number> {
+    const games = await this.gamesService.getGames({
+      status: GameStatus.IN_PROGRESS,
+    });
+    return Math.ceil(games.length / 10);
   }
 
   @Post()

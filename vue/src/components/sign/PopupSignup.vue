@@ -95,6 +95,7 @@ export default class PopupSignup extends Vue {
   left: 0;
   justify-content: center;
   align-items: center;
+  z-index: 100;
   .popup {
     background-color: #fff;
     position: relative;

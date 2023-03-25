@@ -190,22 +190,7 @@ export default class ChessBoard extends Vue {
             }
             this.socket.on(
               `game:${this.gameId}:turn:${this.teamPlay}`,
-              (move: string) => {
-                this.gameClient.move(move);
-                this.isCheck = this.gameClient.isCheck();
-                if (this.isCheck) {
-                  this.checkRef.style.display = "flex";
-                  for (let i = 1; i <= 10; i++) {
-                    setTimeout(() => {
-                      this.checkRef.style.opacity = (1 - i / 10).toString();
-                    }, 60 * i);
-                  }
-                }
-                this.isCheckMate = this.gameClient.isCheckmate();
-                this.pieces = initialBoardState(this.gameClient.board());
-                this.changeBoard();
-                this.turnOn = true;
-              }
+              this.socketOnMove
             );
             this.socket.on(`game:${this.gameId}:end`, (data: any) => {
               if (data === TeamType.BLACK) {
@@ -238,9 +223,29 @@ export default class ChessBoard extends Vue {
     }
   }
 
+  socketOnMove(move: string) {
+    this.gameClient.move(move);
+    this.isCheck = this.gameClient.isCheck();
+    if (this.isCheck) {
+      this.checkRef.style.display = "flex";
+      for (let i = 1; i <= 10; i++) {
+        setTimeout(() => {
+          this.checkRef.style.opacity = (1 - i / 10).toString();
+        }, 60 * i);
+      }
+    }
+    this.isCheckMate = this.gameClient.isCheckmate();
+    this.pieces = initialBoardState(this.gameClient.board());
+    this.changeBoard();
+    this.turnOn = true;
+  }
+
   changeBoard() {
     const board = [];
-    if (this.teamPlay === TeamType.WHITE) {
+    if (
+      this.teamPlay === TeamType.WHITE ||
+      this.teamPlay === TeamType.SPECTATOR
+    ) {
       for (let j = 7; j >= 0; j--)
         for (let i = 0; i < 8; i++) {
           let currentPiece;
@@ -336,6 +341,7 @@ export default class ChessBoard extends Vue {
   grabPiece(e: MouseEvent) {
     const element = e.target as HTMLElement;
     if (
+      this.teamPlay !== TeamType.SPECTATOR &&
       this.turnOn &&
       element.classList.contains("chess-piece") &&
       element.classList.contains(`team${this.teamPlay}`)
@@ -479,7 +485,7 @@ export default class ChessBoard extends Vue {
     const { player } = store.state;
     if (player) {
       this.loading.style.display = "flex";
-      this.socket.emit("join", { userId: player._id });
+      this.socket.emit("join", { id: player._id, name: player.nickname });
       this.socket.on(`games:${player._id}:created`, (gameId) => {
         store.dispatch("setGameId", gameId);
         this.loading.style.display = "none";

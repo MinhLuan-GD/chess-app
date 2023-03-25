@@ -31,6 +31,7 @@ interface Player {
 interface State {
   player: Player | null;
   gameId: string | null;
+  games: Game[];
   gameMessages: Message[];
 }
 
@@ -45,7 +46,9 @@ interface Game {
   start_time: string;
   end_time?: string;
   whitePlayerId: string;
+  whitePlayerName: string;
   blackPlayerId: string;
+  blackPlayerName: string;
   move_time_limit: string;
   game_time_limit: string;
   messages: Message[];

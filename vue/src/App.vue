@@ -10,6 +10,7 @@ export default class App extends Vue {
   created() {
     store.dispatch("getPlayer");
     store.dispatch("getGameId");
+    store.dispatch("getTenGames");
   }
 }
 </script>
@@ -19,6 +20,17 @@ export default class App extends Vue {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+}
+
+body {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #5c1810;
+    border-radius: 10px;
+  }
+  background-color: #312e2b;
 }
 
 #app {

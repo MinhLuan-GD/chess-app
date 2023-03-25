@@ -67,6 +67,7 @@ export default class PopupLogin extends Vue {
   height: 100%;
   justify-content: center;
   align-items: center;
+  z-index: 100;
   .popup {
     background-color: #fff;
     position: relative;

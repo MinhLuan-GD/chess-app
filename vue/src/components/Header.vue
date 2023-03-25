@@ -1,6 +1,7 @@
 <template>
   <PopupLogin />
   <PopupSignup />
+  <div :class="$style['left-sidebar-fake']"></div>
   <div :class="$style['left-sidebar']">
     <div :class="$style['nav-logo']" @click="() => $router.push('/')">
       <h1 :class="$style.logo">Chess</h1>
@@ -18,7 +19,7 @@
         <span> Chơi </span>
       </a>
     </div>
-    <div :class="$style['nav-item']">
+    <div :class="$style['nav-item']" @click="() => $router.push('listgame')">
       <a href="#" :class="$style.option">
         <img
           src="@/assets/icon/chess-board.png"
@@ -160,10 +161,15 @@ export default class Header extends Vue {
 </script>
 
 <style lang="scss" module>
+.left-sidebar-fake {
+  grid-area: header;
+  height: 100%;
+}
 .left-sidebar {
   background-color: #272522;
   grid-area: header;
   height: 100%;
+  position: fixed;
   padding: 30px 0px;
   & .nav-logo {
     display: flex;

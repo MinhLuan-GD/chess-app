@@ -21,6 +21,12 @@ const routes: Array<RouteRecordRaw> = [
     name: "game-option",
     component: () => import("../views/GameOptionView.vue"),
   },
+
+  {
+    path: Routes.LISTGAME,
+    name: "listgame",
+    component: () => import("../views/ListGameView.vue"),
+  },
 ];
 
 const router = createRouter({

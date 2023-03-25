@@ -5,6 +5,7 @@ import { IGamesService } from './games.interface';
 import { GamesRepository } from './games.repository';
 import { Game } from './schemas/game.schema';
 import { Position } from 'kokopu';
+import { FilterQuery } from 'mongoose';
 
 @Injectable()
 export class GamesService implements IGamesService {
@@ -16,8 +17,13 @@ export class GamesService implements IGamesService {
     return this.gamesRepository.getOne({ _id: id });
   }
 
-  getGames(): Promise<Game[]> {
-    return this.gamesRepository.find({});
+  async getGames(query = {}): Promise<Game[]> {
+    return this.gamesRepository.find(query);
+  }
+
+  async getCurrentGames(query = {}, page = 1): Promise<Game[]> {
+    const skip = (page - 1) * 10;
+    return this.gamesRepository.find(query, undefined, 10, undefined, skip);
   }
 
   async createGame(createGameDto: CreateGameDto): Promise<Game> {
