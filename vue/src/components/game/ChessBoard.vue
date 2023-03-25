@@ -144,88 +144,95 @@ export default class ChessBoard extends Vue {
 
   async initGame() {
     if (this.gameId) {
-      const { data } = await getGame(this.gameId);
-      if (data.status === GameStatus.FINISHED) {
-        alert("Game đã kết thúc");
-        router.push("/");
-        store.dispatch("deleteGameId");
-        return;
-      }
-      store.dispatch("setGameMessages", data.messages);
-      this.gameClient = new Chess();
-      data.moves.forEach((move: string) => {
-        this.gameClient.move(move);
-      });
-      this.isCheck = this.gameClient.isCheck();
-      this.isCheckMate = this.gameClient.isCheckmate();
-      this.pieces = initialBoardState(this.gameClient.board());
-      const interval = setInterval(() => {
-        if (store.state.player) {
-          if (data.whitePlayerId === store.state.player._id) {
-            this.teamPlay = TeamType.WHITE;
-          } else if (data.blackPlayerId === store.state.player._id) {
-            this.teamPlay = TeamType.BLACK;
-          } else {
-            this.teamPlay = TeamType.SPECTATOR;
-          }
-          getPlayer(data.whitePlayerId).then(({ data }) => {
-            this.whitePlayer = data;
-            if (this.teamPlay === TeamType.WHITE) {
-              this.ourName = data.nickname;
+      try {
+        const { data } = await getGame(this.gameId);
+        if (data.status === GameStatus.FINISHED) {
+          alert("Game đã kết thúc");
+          router.push("/");
+          store.dispatch("deleteGameId");
+          return;
+        }
+        store.dispatch("setGameMessages", data.messages);
+        this.gameClient = new Chess();
+        data.moves.forEach((move: string) => {
+          this.gameClient.move(move);
+        });
+        this.isCheck = this.gameClient.isCheck();
+        this.isCheckMate = this.gameClient.isCheckmate();
+        this.pieces = initialBoardState(this.gameClient.board());
+        const interval = setInterval(() => {
+          if (store.state.player) {
+            if (data.whitePlayerId === store.state.player._id) {
+              this.teamPlay = TeamType.WHITE;
+            } else if (data.blackPlayerId === store.state.player._id) {
+              this.teamPlay = TeamType.BLACK;
             } else {
-              this.opponentName = data.nickname;
+              this.teamPlay = TeamType.SPECTATOR;
             }
-          });
-          getPlayer(data.blackPlayerId).then(({ data }) => {
-            this.blackPlayer = data;
-            if (this.teamPlay === TeamType.BLACK) {
-              this.ourName = data.nickname;
-            } else {
-              this.opponentName = data.nickname;
-            }
-          });
-          if (this.teamPlay === this.gameClient.turn()) {
-            this.turnOn = true;
-          }
-          this.socket.on(
-            `game:${this.gameId}:turn:${this.teamPlay}`,
-            (move: string) => {
-              this.gameClient.move(move);
-              this.isCheck = this.gameClient.isCheck();
-              if (this.isCheck) {
-                this.checkRef.style.display = "flex";
-                for (let i = 1; i <= 10; i++) {
-                  setTimeout(() => {
-                    this.checkRef.style.opacity = (1 - i / 10).toString();
-                  }, 60 * i);
-                }
+            getPlayer(data.whitePlayerId).then(({ data }) => {
+              this.whitePlayer = data;
+              if (this.teamPlay === TeamType.WHITE) {
+                this.ourName = data.nickname;
+              } else {
+                this.opponentName = data.nickname;
               }
-              this.isCheckMate = this.gameClient.isCheckmate();
-              this.pieces = initialBoardState(this.gameClient.board());
-              this.changeBoard();
+            });
+            getPlayer(data.blackPlayerId).then(({ data }) => {
+              this.blackPlayer = data;
+              if (this.teamPlay === TeamType.BLACK) {
+                this.ourName = data.nickname;
+              } else {
+                this.opponentName = data.nickname;
+              }
+            });
+            if (this.teamPlay === this.gameClient.turn()) {
               this.turnOn = true;
             }
-          );
-          this.socket.on(`game:${this.gameId}:end`, (data: any) => {
-            if (data === TeamType.BLACK) {
-              this.winner = this.whitePlayer.nickname;
-              this.loser = this.blackPlayer.nickname;
-            } else if (data === TeamType.WHITE) {
-              this.winner = this.blackPlayer.nickname;
-              this.loser = this.whitePlayer.nickname;
-            } else {
-              this.winner = "";
-              this.loser = "";
-            }
-            this.gameOverRef.style.display = "flex";
-          });
-          this.socket.on(`game:${this.gameId}:error`, () => {
-            window.location.reload();
-          });
-          this.changeBoard();
-          clearInterval(interval);
-        }
-      }, 100);
+            this.socket.on(
+              `game:${this.gameId}:turn:${this.teamPlay}`,
+              (move: string) => {
+                this.gameClient.move(move);
+                this.isCheck = this.gameClient.isCheck();
+                if (this.isCheck) {
+                  this.checkRef.style.display = "flex";
+                  for (let i = 1; i <= 10; i++) {
+                    setTimeout(() => {
+                      this.checkRef.style.opacity = (1 - i / 10).toString();
+                    }, 60 * i);
+                  }
+                }
+                this.isCheckMate = this.gameClient.isCheckmate();
+                this.pieces = initialBoardState(this.gameClient.board());
+                this.changeBoard();
+                this.turnOn = true;
+              }
+            );
+            this.socket.on(`game:${this.gameId}:end`, (data: any) => {
+              if (data === TeamType.BLACK) {
+                this.winner = this.whitePlayer.nickname;
+                this.loser = this.blackPlayer.nickname;
+              } else if (data === TeamType.WHITE) {
+                this.winner = this.blackPlayer.nickname;
+                this.loser = this.whitePlayer.nickname;
+              } else {
+                this.winner = "";
+                this.loser = "";
+              }
+              this.gameOverRef.style.display = "flex";
+            });
+            this.socket.on(`game:${this.gameId}:error`, () => {
+              window.location.reload();
+            });
+            this.changeBoard();
+            clearInterval(interval);
+          }
+        }, 100);
+      } catch (error) {
+        console.log(error);
+        alert("Game không tồn tại");
+        router.push("/");
+        store.dispatch("deleteGameId");
+      }
     } else {
       router.push("/");
     }

@@ -181,7 +181,3 @@ export default class Chat extends Vue {
   }
 }
 </style>
-
-Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt voluptate,
-nesciunt sint voluptatem culpa laudantium aperiam consequatur natus ex ab
-incidunt cupiditate, provident, omnis aliquid fugit? Dolor dicta iste libero.

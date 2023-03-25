@@ -20,7 +20,6 @@ import * as Joi from 'joi';
         MONGO_DB: Joi.string().required(),
         MONGO_USER: Joi.string().required(),
         MONGO_PASS: Joi.string().required(),
-        REDIS_HOST: Joi.string().required(),
         RABBIT_MQ_URI: Joi.string().required(),
         ORIGIN: Joi.string().required(),
       }),

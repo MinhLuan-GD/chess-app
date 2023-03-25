@@ -23,5 +23,6 @@ WORKDIR /app
 RUN yarn install --only=production
 
 COPY --chown=node:node --from=development /app/dist ./dist
+COPY --chown=node:node --from=development /app/node_modules ./node_modules
 
 CMD [ "node", "dist/apps/auth/main" ]
