@@ -74,8 +74,8 @@ export default class Tile extends Vue {
   pointer-events: none;
   z-index: 2;
   content: "";
-  width: 12px;
-  height: 12px;
+  width: 2%;
+  height: 2%;
   border-radius: 50%;
   background: rgb(59, 217, 218);
   background: radial-gradient(
@@ -89,8 +89,8 @@ export default class Tile extends Vue {
   pointer-events: none;
   z-index: 2;
   content: "";
-  width: 14px;
-  height: 14px;
+  width: 2.5%;
+  height: 2.5%;
   border-radius: 50%;
   background: rgb(241, 148, 138);
   background: radial-gradient(

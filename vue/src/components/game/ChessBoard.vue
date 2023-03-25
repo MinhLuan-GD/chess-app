@@ -308,11 +308,24 @@ export default class ChessBoard extends Vue {
     this.tileSize = this.chessBoardRef.clientWidth / 8;
     this.offsetLeft = this.mainContainerRef.offsetLeft + 30;
     this.offsetTop = this.mainContainerRef.offsetTop;
-    this.minX = -10;
-    this.minY = -10;
-    this.maxX = this.chessBoardRef.clientWidth - this.tileSize + 10;
-    this.maxY = this.chessBoardRef.clientHeight - this.tileSize + 10;
+    this.minX = -this.tileSize / 7;
+    this.minY = -this.tileSize / 7;
+    this.maxX = this.chessBoardRef.clientWidth - this.tileSize * 0.85;
+    this.maxY = this.chessBoardRef.clientHeight - this.tileSize * 0.85;
+    onresize = () => {
+      this.setSize();
+    };
     this.loading = document.getElementById("loading") as HTMLElement;
+  }
+
+  setSize() {
+    this.tileSize = this.chessBoardRef.clientWidth / 8;
+    this.offsetLeft = this.mainContainerRef.offsetLeft + this.tileSize / 2;
+    this.offsetTop = this.mainContainerRef.offsetTop + this.tileSize / 2;
+    this.minX = -this.tileSize / 7;
+    this.minY = -this.tileSize / 7;
+    this.maxX = this.chessBoardRef.clientWidth - this.tileSize * 0.85;
+    this.maxY = this.chessBoardRef.clientHeight - this.tileSize * 0.85;
   }
 
   url(chess: string) {
@@ -344,8 +357,8 @@ export default class ChessBoard extends Vue {
 
   movePiece(e: MouseEvent) {
     if (this.activatePiece && this.chessBoardRef) {
-      const x = e.clientX - this.offsetLeft - 36;
-      const y = e.clientY - this.offsetTop - 36;
+      const x = e.clientX - this.offsetLeft - this.tileSize / 2;
+      const y = e.clientY - this.offsetTop - this.tileSize / 2;
       if (x < this.minX) this.activatePiece.style.left = `${this.minX}px`;
       else if (x > this.maxX) {
         this.activatePiece.style.left = `${this.maxX}px`;
