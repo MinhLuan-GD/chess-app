@@ -9,7 +9,7 @@ RUN yarn
 
 COPY --chown=node:node . .
 
-RUN yarn build
+RUN yarn build auth
 
 USER node
 
@@ -20,9 +20,10 @@ ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /app
 
+COPY --chown=node:node --from=development /app/package.json ./package.json
+
 RUN yarn install --only=production
 
 COPY --chown=node:node --from=development /app/dist ./dist
-COPY --chown=node:node --from=development /app/node_modules ./node_modules
 
 CMD [ "node", "dist/apps/auth/main" ]

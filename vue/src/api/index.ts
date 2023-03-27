@@ -1,4 +1,4 @@
 import axios from "axios";
 export const api = axios.create({
-  baseURL: "http://localhost/",
+  baseURL: process.env.VUE_APP_API_ENDPOINT,
 });

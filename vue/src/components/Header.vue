@@ -153,7 +153,7 @@ export default class Header extends Vue {
   }
 
   logout() {
-    window.location.href = `${process.env.VUE_APP_SOCKET_ENDPOINT}/auth/logout`;
+    window.location.href = `${process.env.VUE_APP_API_ENDPOINT}/auth/logout`;
     store.dispatch("logout");
     store.dispatch("deleteGameId");
   }

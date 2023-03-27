@@ -137,7 +137,7 @@ export default class ChessBoard extends Vue {
   gameClient!: Chess;
 
   created(): void {
-    this.socket = io("http://localhost:3002");
+    this.socket = io(process.env.VUE_APP_API_ENDPOINT);
     this.referee = new Referee();
     this.initGame();
   }

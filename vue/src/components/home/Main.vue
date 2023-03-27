@@ -187,7 +187,7 @@ export default class Main extends Vue {
   loading!: HTMLElement;
 
   created(): void {
-    this.socket = io("http://localhost:3002");
+    this.socket = io(process.env.VUE_APP_API_ENDPOINT);
   }
 
   mounted(): void {

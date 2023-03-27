@@ -40,7 +40,7 @@ export default class Chat extends Vue {
   gameId = store.state.gameId;
 
   created() {
-    this.socket = io("http://localhost:3002");
+    this.socket = io(process.env.VUE_APP_API_ENDPOINT);
     this.gameId = store.state.gameId;
     document.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {

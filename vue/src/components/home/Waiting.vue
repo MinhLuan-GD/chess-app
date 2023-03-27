@@ -18,7 +18,7 @@ export default class Waiting extends Vue {
   loading = ref() as unknown as HTMLElement;
 
   created(): void {
-    this.socket = io("http://localhost:3002");
+    this.socket = io(process.env.VUE_APP_API_ENDPOINT);
   }
 
   cancel() {
